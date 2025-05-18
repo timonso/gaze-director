@@ -20,6 +20,7 @@ import selectLock from './svg/select-lock.svg';
 import selectNone from './svg/select-none.svg';
 import selectSeparate from './svg/select-separate.svg';
 import selectUnlock from './svg/select-unlock.svg';
+import hideUISvg from './svg/shown.svg';
 
 const createSvg = (svgString: string) => {
     const decodedStr = decodeURIComponent(svgString.substring('data:image/svg+xml,'.length));
@@ -71,6 +72,11 @@ class Menu extends Container {
             class: 'menu-option'
         });
 
+        const gaze = new Label({
+            text: 'Gaze',
+            class: 'menu-option'
+        });
+
         const help = new Label({
             text: localize('help'),
             class: 'menu-option'
@@ -80,10 +86,20 @@ class Menu extends Container {
             document.body.classList.toggle('collapsed');
         };
 
+        // toggle UI visibility
+        const toggleHidden = () => {
+            events.fire('ui.toggle');
+        };
+
         // collapse menu on mobile
         if (document.body.clientWidth < 600) {
             toggleCollapsed();
         }
+
+        const hideUI = createSvg(hideUISvg);
+        hideUI.dom.classList.add('menu-icon');
+        hideUI.dom.setAttribute('id', 'menu-hide');
+        hideUI.dom.addEventListener('click', toggleHidden);
 
         const collapse = createSvg(collapseSvg);
         collapse.dom.classList.add('menu-icon');
@@ -101,11 +117,13 @@ class Menu extends Container {
         buttonsContainer.append(scene);
         buttonsContainer.append(selection);
         buttonsContainer.append(render);
+        buttonsContainer.append(gaze);
         buttonsContainer.append(help);
         buttonsContainer.append(collapse);
+        buttonsContainer.append(hideUI);
         buttonsContainer.append(arrow);
 
-        menubar.append(icon);
+        // menubar.append(icon);
         menubar.append(buttonsContainer);
 
         const exportMenuPanel = new MenuPanel([{
@@ -235,6 +253,16 @@ class Menu extends Container {
             onSelect: async () => await events.invoke('show.videoSettingsDialog')
         }]);
 
+        const gazeMenuPanel = new MenuPanel([{
+            text: localize('render.image'),
+            icon: createSvg(sceneExport),
+            onSelect: async () => await events.invoke('show.imageSettingsDialog')
+        }, {
+            text: localize('render.video'),
+            icon: createSvg(sceneExport),
+            onSelect: async () => await events.invoke('show.videoSettingsDialog')
+        }]);
+
         const helpMenuPanel = new MenuPanel([{
             text: localize('help.shortcuts'),
             icon: 'E136',
@@ -280,6 +308,7 @@ class Menu extends Container {
         this.append(exportMenuPanel);
         this.append(selectionMenuPanel);
         this.append(renderMenuPanel);
+        this.append(gazeMenuPanel);
         this.append(helpMenuPanel);
 
         const options: { dom: HTMLElement, menuPanel: MenuPanel }[] = [{
@@ -294,6 +323,9 @@ class Menu extends Container {
         }, {
             dom: help.dom,
             menuPanel: helpMenuPanel
+        }, {
+            dom: gaze.dom,
+            menuPanel: gazeMenuPanel
         }];
 
         options.forEach((option) => {

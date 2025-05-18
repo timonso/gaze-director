@@ -94,6 +94,7 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['M', 'm'], { event: 'camera.toggleMode' });
     shortcuts.register(['D', 'd'], { event: 'dataPanel.toggle' });
     shortcuts.register([' '], { event: 'camera.toggleOverlay' });
+    shortcuts.register(['T', 't'], { event: 'ui.toggle' });
 
     return shortcuts;
 };
@@ -206,6 +207,10 @@ const main = async () => {
     });
     events.on('lockedClr', (clr: Color) => {
         scene.forceRender = true;
+    });
+
+    events.on('ui.toggle', () => {
+        document.body.classList.toggle('hidden');
     });
 
     // initialize colors from application config

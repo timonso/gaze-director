@@ -26,6 +26,19 @@
     overscroll-behavior: none;
 }
 
+.hidden {
+    #timeline-panel,
+    #data-panel {
+        display: none !important;
+    }
+
+    #canvas-container {
+        *:not(canvas){
+            display: none !important;
+        }
+    }
+}
+
 html {
     height: 100%;
 }
