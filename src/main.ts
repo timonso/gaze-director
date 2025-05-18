@@ -6,6 +6,7 @@ import { EditHistory } from './edit-history';
 import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { initFileHandler } from './file-handler';
+import { startGazeTracking, stopGazeTracking } from './gaze/gaze-tracker';
 import { registerPlySequenceEvents } from './ply-sequence';
 import { registerPublishEvents } from './publish';
 import { registerRenderEvents } from './render';
@@ -26,6 +27,7 @@ import { SphereSelection } from './tools/sphere-selection';
 import { ToolManager } from './tools/tool-manager';
 import { registerTransformHandlerEvents } from './transform-handler';
 import { EditorUI } from './ui/editor';
+
 
 declare global {
     interface LaunchParams {
@@ -209,8 +211,18 @@ const main = async () => {
         scene.forceRender = true;
     });
 
+    // gaze direction events
+
     events.on('ui.toggle', () => {
         document.body.classList.toggle('hidden');
+    });
+
+    events.on('gaze.startTracking', () => {
+        startGazeTracking();
+    });
+
+    events.on('gaze.stopTracking', () => {
+        stopGazeTracking();
     });
 
     // initialize colors from application config

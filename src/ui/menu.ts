@@ -254,13 +254,11 @@ class Menu extends Container {
         }]);
 
         const gazeMenuPanel = new MenuPanel([{
-            text: localize('render.image'),
-            icon: createSvg(sceneExport),
-            onSelect: async () => await events.invoke('show.imageSettingsDialog')
+            text: 'Start Tracking',
+            onSelect: async () => await events.fire('gaze.startTracking')
         }, {
-            text: localize('render.video'),
-            icon: createSvg(sceneExport),
-            onSelect: async () => await events.invoke('show.videoSettingsDialog')
+            text: 'Stop Tracking',
+            onSelect: async () => await events.fire('gaze.stopTracking')
         }]);
 
         const helpMenuPanel = new MenuPanel([{

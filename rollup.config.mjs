@@ -8,6 +8,7 @@ import strip from '@rollup/plugin-strip';
 import typescript from '@rollup/plugin-typescript';
 import json from '@rollup/plugin-json';
 import { string } from 'rollup-plugin-string';
+import commonjs from '@rollup/plugin-commonjs';
 // import { visualizer } from 'rollup-plugin-visualizer';
 
 import autoprefixer from 'autoprefixer';
@@ -51,6 +52,7 @@ outputHeader();
 const aliasEntries = [
     { find: 'playcanvas', replacement: ENGINE_PATH },
     { find: 'pcui', replacement: PCUI_DIR }
+    // { find: 'localforage', replacement: 'node_modules/localforage/dist/localforage.js' }
 ];
 
 const tsCompilerOptions = {
@@ -90,6 +92,10 @@ const application = {
         }),
         alias({ entries: aliasEntries }),
         resolve(),
+        commonjs({
+            exclude: ['submodules/supersplat-viewer/dist/index.js'],
+            defaultIsModuleExports: true
+        }),
         image({ dom: false }),
         json(),
         scss({
