@@ -18,12 +18,15 @@ import {
     Quat,
     Texture,
     Vec3,
+    Vec2,
     MeshInstance
 } from 'playcanvas';
 
 import { Element, ElementType } from './element';
+import { Scene } from './scene';
 import { Serializer } from './serializer';
-import { vertexShader, fragmentShader, gsplatCenter } from './shaders/splat-shader';
+// import { vertexShader, fragmentShader, gsplatCenter } from './shaders/splat-shader';
+import { vertexShader, fragmentShader, gsplatCenter } from './shaders/stimulus-shader';
 import { State } from './splat-state';
 import { Transform } from './transform';
 import { TransformPalette } from './transform-palette';
@@ -165,6 +168,8 @@ class Splat extends Element {
         const blendState = new BlendState(true, BLENDEQUATION_ADD, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_SRC_ALPHA);
 
         this.rebuildMaterial = (bands: number) => {
+            const canvasResolution = [splatResource.app.graphicsDevice.width, splatResource.app.graphicsDevice.height];
+            console.log(canvasResolution);
             instance.createMaterial(materialOptions);
             const { material } = instance;
             material.chunks = { gsplatCenterVS: gsplatCenter };
@@ -172,6 +177,7 @@ class Splat extends Element {
             material.setDefine('SH_BANDS', `${Math.min(bands, (instance.splat as GSplat).shBands)}`);
             material.setParameter('splatState', this.stateTexture);
             material.setParameter('splatTransform', this.transformTexture);
+            material.setParameter('canvasResolution', canvasResolution);
             material.update();
         };
 
