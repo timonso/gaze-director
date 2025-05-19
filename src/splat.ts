@@ -168,8 +168,6 @@ class Splat extends Element {
         const blendState = new BlendState(true, BLENDEQUATION_ADD, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_SRC_ALPHA);
 
         this.rebuildMaterial = (bands: number) => {
-            const canvasResolution = [splatResource.app.graphicsDevice.width, splatResource.app.graphicsDevice.height];
-            console.log(canvasResolution);
             instance.createMaterial(materialOptions);
             const { material } = instance;
             material.chunks = { gsplatCenterVS: gsplatCenter };
@@ -177,9 +175,21 @@ class Splat extends Element {
             material.setDefine('SH_BANDS', `${Math.min(bands, (instance.splat as GSplat).shBands)}`);
             material.setParameter('splatState', this.stateTexture);
             material.setParameter('splatTransform', this.transformTexture);
-            material.setParameter('canvasResolution', canvasResolution);
             material.update();
         };
+
+        const stimulusWorldPosition = new Vec3(1.0, 2.0, 2.0);
+        let currentTime = 0;
+        splatResource.app.on('update', (elapsedTime) => {
+            currentTime += elapsedTime;
+            // console.log(currentTime);
+            const { material } = instance;
+            material?.setParameter('currentTime', currentTime);
+            material?.setParameter('stimulusWorldPosition', stimulusWorldPosition.toArray() as number[]);
+            const canvasResolution = [splatResource.app.graphicsDevice.width, splatResource.app.graphicsDevice.height];
+            material?.setParameter('canvasResolution', canvasResolution);
+            material.update();
+        });
 
         this.selectionBoundStorage = new BoundingBox();
         this.localBoundStorage = instance.splat.aabb;

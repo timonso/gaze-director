@@ -10,11 +10,11 @@ uniform vec3 clrOffset;
 uniform vec4 clrScale;
 
 uniform vec2 canvasResolution;
+uniform vec3 stimulusWorldPosition;
 
 varying mediump vec3 texCoordIsLocked;          // store locked flat in z
 varying mediump vec4 color;
 
-mediump vec3 stimulusWorldPosition = vec3(0.0, 0.0, 0.0);
 varying mediump vec3 stimulusScreenPosition;
 
 #if PICK_PASS
@@ -148,6 +148,7 @@ void main(void) {
 const fragmentShader = /* glsl*/`
 varying mediump vec3 texCoordIsLocked;
 varying mediump vec4 color;
+uniform float currentTime;
 
 uniform int mode;               // 0: centers, 1: rings
 uniform float pickerAlpha;
@@ -183,6 +184,7 @@ void main(void) {
                 }
                 }
             
+            float stimulusIntensity = sin(currentTime * 1.0) * 0.5 + 0.5;
             vec4 stimulusColor = vec4(1.0, 1.0, 1.0, 1.0);
             float stimFragDist = distance(stimulusScreenPosition.xy, gl_FragCoord.xy);
             // stimFragDist = clamp(stimFragDist, 0.0, 1.0);
@@ -190,7 +192,7 @@ void main(void) {
             // gl_FragColor = vec4(gl_FragColor.xyz * stimFragDist * alpha, alpha);
 
             if (stimFragDist <= 32.0) {
-                gl_FragColor = stimulusColor * alpha;
+                gl_FragColor = vec4(stimulusColor.xyz * stimulusIntensity * alpha, alpha);
             } else {
                 gl_FragColor = vec4(color.xyz * alpha, alpha);
              }

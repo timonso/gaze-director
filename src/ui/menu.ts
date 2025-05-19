@@ -255,9 +255,11 @@ class Menu extends Container {
 
         const gazeMenuPanel = new MenuPanel([{
             text: 'Start Tracking',
+            icon: 'E131',
             onSelect: async () => await events.fire('gaze.startTracking')
         }, {
             text: 'Stop Tracking',
+            icon: 'E135',
             onSelect: async () => await events.fire('gaze.stopTracking')
         }]);
 
