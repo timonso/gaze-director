@@ -5,6 +5,7 @@ import { Scene } from './scene';
 import { Splat } from './splat';
 import { State } from './splat-state';
 import { Transform } from './transform';
+import { GazeTarget } from './gaze/gaze-target';
 
 interface EditOp {
     name: string;
@@ -409,6 +410,29 @@ class AddSplatOp {
     }
 }
 
+class AddGazeTargetOp {
+    name: 'addGazeTarget';
+    scene: Scene;
+    gazeTarget: GazeTarget;
+
+    constructor(scene: Scene, gazeTarget: GazeTarget) {
+        this.scene = scene;
+        this.gazeTarget = gazeTarget;
+    }
+
+    do() {
+        this.scene.add(this.gazeTarget);
+    }
+
+    undo() {
+        this.scene.remove(this.gazeTarget);
+    }
+
+    destroy() {
+        this.gazeTarget.destroy();
+    }
+}
+
 export {
     EditOp,
     SelectAllOp,
@@ -425,5 +449,6 @@ export {
     ColorAdjustment,
     SetSplatColorAdjustmentOp,
     MultiOp,
-    AddSplatOp
+    AddSplatOp,
+    AddGazeTargetOp
 };

@@ -15,6 +15,7 @@ import autoprefixer from 'autoprefixer';
 import postcss from 'postcss';
 import sass from 'sass';
 import scss from 'rollup-plugin-scss';
+import webWorkerLoader from 'rollup-plugin-web-worker-loader';
 
 // prod is release build
 if (process.env.BUILD_TYPE === 'prod') {
@@ -93,6 +94,7 @@ const application = {
         alias({ entries: aliasEntries }),
         resolve(),
         commonjs({
+            include: ['**', '/node_modules/webgazer/src/ridgeWorker.mjs'],
             exclude: ['submodules/supersplat-viewer/dist/index.js'],
             defaultIsModuleExports: true
         }),
@@ -119,7 +121,12 @@ const application = {
                 include: ['**/*.ts'],
                 functions: ['Debug.exec']
             }),
-        BUILD_TYPE !== 'debug' && terser()
+        BUILD_TYPE !== 'debug' && terser(),
+        webWorkerLoader({
+            targetPlatform: 'browser',
+            inline: false,
+            preserveSource: true
+        })
         // visualizer()
     ],
     treeshake: 'smallest',

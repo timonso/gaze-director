@@ -176,6 +176,7 @@ class Splat extends Element {
             material.setParameter('splatState', this.stateTexture);
             material.setParameter('splatTransform', this.transformTexture);
             material.update();
+            this.scene.forceRender = true;
         };
 
         const stimulusWorldPosition = new Vec3(1.0, 2.0, 2.0);
@@ -186,8 +187,10 @@ class Splat extends Element {
             const { material } = instance;
             material?.setParameter('currentTime', currentTime);
             material?.setParameter('stimulusWorldPosition', stimulusWorldPosition.toArray() as number[]);
-            const canvasResolution = [splatResource.app.graphicsDevice.width, splatResource.app.graphicsDevice.height];
-            material?.setParameter('canvasResolution', canvasResolution);
+            if (splatResource.app) {
+                const canvasResolution = [splatResource.app.graphicsDevice.width, splatResource.app.graphicsDevice.height];
+                material?.setParameter('canvasResolution', canvasResolution);
+            }
             material.update();
         });
 

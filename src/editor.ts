@@ -1,8 +1,9 @@
 import { Color, Mat4, Texture, Vec3, Vec4 } from 'playcanvas';
 
 import { EditHistory } from './edit-history';
-import { SelectAllOp, SelectNoneOp, SelectInvertOp, SelectOp, HideSelectionOp, UnhideAllOp, DeleteSelectionOp, ResetOp, MultiOp, AddSplatOp } from './edit-ops';
+import { SelectAllOp, SelectNoneOp, SelectInvertOp, SelectOp, HideSelectionOp, UnhideAllOp, DeleteSelectionOp, ResetOp, MultiOp, AddSplatOp, AddGazeTargetOp } from './edit-ops';
 import { Events } from './events';
+import { GazeTarget } from './gaze/gaze-target';
 import { Scene } from './scene';
 import { BufferWriter } from './serialize/writer';
 import { Splat } from './splat';
@@ -458,6 +459,11 @@ const registerEditorEvents = (events: Events, editHistory: EditHistory, scene: S
         selectedSplats().forEach((splat) => {
             editHistory.add(new ResetOp(splat));
         });
+    });
+
+    events.on('gaze.addTarget', () => {
+        const gazeTarget = new GazeTarget();
+        editHistory.add(new AddGazeTargetOp(scene, gazeTarget));
     });
 
     const setAllData = (value: boolean) => {

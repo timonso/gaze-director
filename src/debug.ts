@@ -33,6 +33,7 @@ class Debug extends Element {
                 vertex_position: SEMANTIC_POSITION,
                 vertex_color: SEMANTIC_COLOR
             },
+            // @ts-ignore
             vertexCode: vertexShader,
             fragmentCode: fragmentShader
         });

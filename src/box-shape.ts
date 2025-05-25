@@ -37,6 +37,7 @@ class BoxShape extends Element {
     add() {
         const material = new ShaderMaterial({
             uniqueName: 'boxShape',
+            // @ts-ignore
             vertexCode: vertexShader,
             fragmentCode: fragmentShader
         });

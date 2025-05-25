@@ -33,6 +33,7 @@ class Scene {
     backgroundLayer: Layer;
     shadowLayer: Layer;
     debugLayer: Layer;
+    gazeLayer: Layer;
     overlayLayer: Layer;
     gizmoLayer: Layer;
     sceneState = [new SceneState(), new SceneState()];
@@ -89,7 +90,11 @@ class Scene {
         this.app.loader.getHandler('texture').imgParser.crossOrigin = 'anonymous';
 
         // this is required to get full res AR mode backbuffer
-        this.app.graphicsDevice.maxPixelRatio = window.devicePixelRatio;
+        // this.app.graphicsDevice.maxPixelRatio = window.devicePixelRatio;
+        // this.app.graphicsDevice.fullscreen = true;
+        this.app.graphicsDevice.maxPixelRatio = 1;
+        this.app.graphicsDevice.setResolution(1920, 1080);
+        console.log('resolution set');
 
         // configure application canvas
         const observer = new ResizeObserver((entries: ResizeObserverEntry[]) => {
@@ -105,7 +110,7 @@ class Scene {
                     } else if (entry.contentBoxSize.length > 0) {
                         // on safari browsers we must calculate pixel size from CSS size ourselves
                         // and hope the browser performs the same calculation.
-                        const pixelRatio = window.devicePixelRatio;
+                        const pixelRatio = 1;
                         this.canvasResize = {
                             width: Math.ceil(entry.contentBoxSize[0].inlineSize * pixelRatio),
                             height: Math.ceil(entry.contentBoxSize[0].blockSize * pixelRatio)
@@ -165,6 +170,12 @@ class Scene {
             transparentSortMode: SORTMODE_NONE
         });
 
+        this.gazeLayer = new Layer({
+            enabled: true,
+            name: 'Gaze Layer',
+            clearDepthBuffer: false
+        });
+
         // overlay layer
         this.overlayLayer = new Layer({
             name: 'Overlay',
@@ -189,6 +200,7 @@ class Scene {
         layers.insert(this.debugLayer, idx + 1);
         layers.push(this.overlayLayer);
         layers.push(this.gizmoLayer);
+        layers.push(this.gazeLayer);
 
         this.dataProcessor = new DataProcessor(this.app.graphicsDevice);
         this.assetLoader = new AssetLoader(this.app, events, this.app.graphicsDevice.maxAnisotropy);
@@ -347,6 +359,10 @@ class Scene {
         // update render target size
         this.targetSize.width = Math.ceil(this.app.graphicsDevice.width / this.config.camera.pixelScale);
         this.targetSize.height = Math.ceil(this.app.graphicsDevice.height / this.config.camera.pixelScale);
+
+        // render at lower resolution
+        // this.targetSize.width = 1920;
+        // this.targetSize.height = 1080;
 
         this.forEachElement(e => e.onPreRender());
 

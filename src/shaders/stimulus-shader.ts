@@ -184,7 +184,7 @@ void main(void) {
                 }
                 }
             
-            float stimulusIntensity = sin(currentTime * 1.0) * 0.5 + 0.5;
+            float stimulusIntensity = sin(currentTime * 10.0) * 0.5 + 0.5;
             vec4 stimulusColor = vec4(1.0, 1.0, 1.0, 1.0);
             float stimFragDist = distance(stimulusScreenPosition.xy, gl_FragCoord.xy);
             // stimFragDist = clamp(stimFragDist, 0.0, 1.0);
