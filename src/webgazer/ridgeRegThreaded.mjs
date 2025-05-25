@@ -6,15 +6,13 @@ import params from './params.mjs';
 import util from './util.mjs';
 import util_regression from './util_regression.mjs';
 
-
 const reg = {};
 
 const dataWindow = 700;
-const weights = { 'X': [0], 'Y': [0] };
+const weights = { X: [0], Y: [0] };
 const trailDataWindow = 10;
 
 // RidgeWorker();
-
 
 /**
  * Constructor of RidgeRegThreaded object,
@@ -25,6 +23,7 @@ const trailDataWindow = 10;
 reg.RidgeRegThreaded = function () {
     this.init();
 };
+
 
 /**
  * Initialize new arrays and initialize Kalman filter.
@@ -48,7 +47,7 @@ reg.RidgeRegThreaded.prototype.init = function () {
         this.worker.onerror = function (err) {
             console.log(err.message);
         };
-        this.worker.onmessageerror =  function (err) {
+        this.worker.onmessageerror = function (err) {
             console.log(err.message);
         };
         this.worker.onmessage = function (evt) {
@@ -62,25 +61,33 @@ reg.RidgeRegThreaded.prototype.init = function () {
     // Initialize Kalman filter [20200608 xk] what do we do about parameters?
     // [20200611 xk] unsure what to do w.r.t. dimensionality of these matrices. So far at least
     //               by my own anecdotal observation a 4x1 x vector seems to work alright
-    const F = [[1, 0, 1, 0],
+    const F = [
+        [1, 0, 1, 0],
         [0, 1, 0, 1],
         [0, 0, 1, 0],
-        [0, 0, 0, 1]];
+        [0, 0, 0, 1],
+    ];
 
     // Parameters Q and R may require some fine tuning
-    let Q = [[1 / 4, 0,    1 / 2, 0],
-        [0,   1 / 4,  0,   1 / 2],
-        [1 / 2, 0,    1,   0],
-        [0,  1 / 2,  0,   1]];// * delta_t
+    let Q = [
+        [1 / 4, 0, 1 / 2, 0],
+        [0, 1 / 4, 0, 1 / 2],
+        [1 / 2, 0, 1, 0],
+        [0, 1 / 2, 0, 1],
+    ]; // * delta_t
     const delta_t = 1 / 10; // The amount of time between frames
     Q = mat.multScalar(Q, delta_t);
 
-    var H = [[1, 0, 0, 0, 0, 0],
+    var H = [
+        [1, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0]];
-    var H = [[1, 0, 0, 0],
-        [0, 1, 0, 0]];
+        [0, 0, 0, 1, 0, 0],
+    ];
+    var H = [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+    ];
     const pixel_error = 47; // We will need to fine tune this value [20200611 xk] I just put a random value here
 
     // This matrix represents the expected measurement error
@@ -89,7 +96,14 @@ reg.RidgeRegThreaded.prototype.init = function () {
     const P_initial = mat.multScalar(mat.identity(4), 0.0001); // Initial covariance matrix
     const x_initial = [[500], [500], [0], [0]]; // Initial measurement matrix
 
-    this.kalman = new util_regression.KalmanFilter(F, H, Q, R, P_initial, x_initial);
+    this.kalman = new util_regression.KalmanFilter(
+        F,
+        H,
+        Q,
+        R,
+        P_initial,
+        x_initial
+    );
 };
 /**
  * Add given data from eyes
@@ -106,7 +120,11 @@ reg.RidgeRegThreaded.prototype.addData = function (eyes, screenPos, type) {
     //     return;
     // }
     // console.log({'eyes':util.getEyeFeats(eyes), 'screenPos':screenPos, 'type':type});
-    this.worker.postMessage({ 'eyes': util.getEyeFeats(eyes), 'screenPos': screenPos, 'type': type });
+    this.worker.postMessage({
+        eyes: util.getEyeFeats(eyes),
+        screenPos: screenPos,
+        type: type,
+    });
 };
 
 /**
@@ -116,15 +134,22 @@ reg.RidgeRegThreaded.prototype.addData = function (eyes, screenPos, type) {
  * @returns {Object}
  */
 reg.RidgeRegThreaded.prototype.predict = function (eyesObj) {
-    // console.log('LOGGING..');
-    if (!eyesObj) {
-        return null;
-    }
+    if (!eyesObj) return null;
+
+    const eyeFeats = util.getEyeFeats(eyesObj);
+
     const coefficientsX = weights.X;
     const coefficientsY = weights.Y;
 
-    const eyeFeats = util.getEyeFeats(eyesObj);
-    let predictedX = 0, predictedY = 0;
+    if (
+        coefficientsX.length !== eyeFeats.length ||
+        coefficientsY.length !== eyeFeats.length
+    ) {
+        return null;
+    }
+
+    let predictedX = 0,
+        predictedY = 0;
     for (let i = 0; i < eyeFeats.length; i++) {
         predictedX += eyeFeats[i] * coefficientsX[i];
         predictedY += eyeFeats[i] * coefficientsY[i];
@@ -134,20 +159,12 @@ reg.RidgeRegThreaded.prototype.predict = function (eyesObj) {
     predictedY = Math.floor(predictedY);
 
     if (params.applyKalmanFilter) {
-        // Update Kalman model, and get prediction
-        let newGaze = [predictedX, predictedY]; // [20200607 xk] Should we use a 1x4 vector?
+        let newGaze = [predictedX, predictedY];
         newGaze = this.kalman.update(newGaze);
-
-        return {
-            x: newGaze[0],
-            y: newGaze[1]
-        };
+        return { x: newGaze[0], y: newGaze[1] };
     }
-    return {
-        x: predictedX,
-        y: predictedY
-    };
 
+    return { x: predictedX, y: predictedY };
 };
 
 /**
