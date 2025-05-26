@@ -33,7 +33,8 @@ class Scene {
     backgroundLayer: Layer;
     shadowLayer: Layer;
     debugLayer: Layer;
-    gazeLayer: Layer;
+    gaze_stimulusLayer: Layer;
+    gaze_targetLayer: Layer;
     overlayLayer: Layer;
     gizmoLayer: Layer;
     sceneState = [new SceneState(), new SceneState()];
@@ -170,7 +171,7 @@ class Scene {
             transparentSortMode: SORTMODE_NONE
         });
 
-        this.gazeLayer = new Layer({
+        this.gaze_stimulusLayer = new Layer({
             enabled: true,
             name: 'Gaze Layer',
             clearDepthBuffer: false
@@ -200,7 +201,7 @@ class Scene {
         layers.insert(this.debugLayer, idx + 1);
         layers.push(this.overlayLayer);
         layers.push(this.gizmoLayer);
-        layers.push(this.gazeLayer);
+        layers.push(this.gaze_stimulusLayer);
 
         this.dataProcessor = new DataProcessor(this.app.graphicsDevice);
         this.assetLoader = new AssetLoader(this.app, events, this.app.graphicsDevice.maxAnisotropy);

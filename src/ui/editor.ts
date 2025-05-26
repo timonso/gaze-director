@@ -23,6 +23,7 @@ import { ViewCube } from './view-cube';
 import { ViewPanel } from './view-panel';
 import { ViewerExportPopup } from './viewer-export-popup';
 import { version } from '../../package.json';
+import { GazePanel } from 'src/gaze/ui/gaze-panel';
 
 class EditorUI {
     appContainer: Container;
@@ -113,23 +114,25 @@ class EditorUI {
 
         // bottom toolbar
         const scenePanel = new ScenePanel(events, tooltips);
+        const gazePanel = new GazePanel(events, tooltips);
         const viewPanel = new ViewPanel(events, tooltips);
         const colorPanel = new ColorPanel(events, tooltips);
         const bottomToolbar = new BottomToolbar(events, tooltips);
         const rightToolbar = new RightToolbar(events, tooltips);
-        const modeToggle = new ModeToggle(events, tooltips);
+        // const modeToggle = new ModeToggle(events, tooltips);
         const menu = new Menu(events);
 
         canvasContainer.dom.appendChild(canvas);
-        canvasContainer.append(appLabel);
+        // canvasContainer.append(appLabel);
         canvasContainer.append(cursorLabel);
         canvasContainer.append(toolsContainer);
         canvasContainer.append(scenePanel);
+        canvasContainer.append(gazePanel);
         canvasContainer.append(viewPanel);
         canvasContainer.append(colorPanel);
         canvasContainer.append(bottomToolbar);
         canvasContainer.append(rightToolbar);
-        canvasContainer.append(modeToggle);
+        // canvasContainer.append(modeToggle);
         canvasContainer.append(menu);
 
         // view axes container

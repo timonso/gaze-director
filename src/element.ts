@@ -9,6 +9,8 @@ enum ElementType {
     splat = 'splat',
     shadow = 'shadow',
     debug = 'debug',
+    gaze_stimulus = 'stimulus',
+    gaze_target = 'target',
     other = 'other'
 }
 
@@ -18,6 +20,8 @@ const ElementTypeList = [
     ElementType.splat,
     ElementType.shadow,
     ElementType.debug,
+    ElementType.gaze_stimulus,
+    ElementType.gaze_target,
     ElementType.other
 ];
 

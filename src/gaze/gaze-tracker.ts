@@ -14,6 +14,7 @@ type GazeRecord = {
 }
 
 const REGRESSION_TYPE = 'threadedRidge';
+const SAMPLING_RATE = 20; // [Hz]
 
 const currentRecordedData: GazeRecord[] = [];
 const gazeTracker = window.webgazer = webgazer;
@@ -47,7 +48,7 @@ async function startGazeTracking() {
             // console.log(prediction);
         }
         currentTime++;
-    }, 50);
+    }, 1000 / SAMPLING_RATE);
 }
 
 

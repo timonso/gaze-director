@@ -240,7 +240,7 @@ class Camera extends Element {
             this.scene.shadowLayer.id,
             this.scene.debugLayer.id,
             this.scene.gizmoLayer.id,
-            this.scene.gazeLayer.id
+            this.scene.gaze_stimulusLayer.id
         ]);
 
         if (this.scene.config.camera.debugRender) {

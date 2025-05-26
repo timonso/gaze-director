@@ -1,0 +1,14 @@
+#gaze-panel {
+    top: 442px;
+    left: 24px;
+    width: 320px;
+}
+
+.collapsed #gaze-panel {
+    display: none;
+}
+
+.stimuli-list-container {
+    max-height: 300px;
+    overflow: auto;
+}

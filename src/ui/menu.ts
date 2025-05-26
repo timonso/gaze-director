@@ -264,7 +264,7 @@ class Menu extends Container {
         }, {
             text: 'Add Target',
             icon: 'E135',
-            onSelect: async () => await events.fire('gaze.addTarget')
+            onSelect: async () => await events.fire('tool.stimulusSelection')
         }]);
 
         const helpMenuPanel = new MenuPanel([{

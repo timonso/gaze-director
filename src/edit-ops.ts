@@ -5,7 +5,7 @@ import { Scene } from './scene';
 import { Splat } from './splat';
 import { State } from './splat-state';
 import { Transform } from './transform';
-import { GazeTarget } from './gaze/gaze-target';
+import { StimulusShape } from './gaze/stimulus-shape';
 
 interface EditOp {
     name: string;
@@ -410,26 +410,26 @@ class AddSplatOp {
     }
 }
 
-class AddGazeTargetOp {
-    name: 'addGazeTarget';
+class AddStimulusOp {
+    name: 'addStimulus';
     scene: Scene;
-    gazeTarget: GazeTarget;
+    stimulus: StimulusShape;
 
-    constructor(scene: Scene, gazeTarget: GazeTarget) {
+    constructor(scene: Scene, stimulus: StimulusShape) {
         this.scene = scene;
-        this.gazeTarget = gazeTarget;
+        this.stimulus = stimulus;
     }
 
     do() {
-        this.scene.add(this.gazeTarget);
+        this.scene.add(this.stimulus);
     }
 
     undo() {
-        this.scene.remove(this.gazeTarget);
+        this.scene.remove(this.stimulus);
     }
 
     destroy() {
-        this.gazeTarget.destroy();
+        this.stimulus.destroy();
     }
 }
 
@@ -450,5 +450,5 @@ export {
     SetSplatColorAdjustmentOp,
     MultiOp,
     AddSplatOp,
-    AddGazeTargetOp
+    AddStimulusOp
 };
