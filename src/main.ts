@@ -98,7 +98,7 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['M', 'm'], { event: 'camera.toggleMode' });
     shortcuts.register(['D', 'd'], { event: 'dataPanel.toggle' });
     shortcuts.register(['O', 'o'], { event: 'camera.toggleOverlay' });
-    shortcuts.register([' '], { event: 'gaze.playScene' });
+    shortcuts.register([' '], { event: 'gaze.toggleScene' });
     shortcuts.register(['I', 'i'], { event: 'gaze.toggleInterface' });
 
     return shortcuts;

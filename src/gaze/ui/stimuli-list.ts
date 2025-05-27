@@ -1,3 +1,5 @@
+// adapted from 'src/ui/splat-list.ts'
+
 import { Container, Label, Element as PcuiElement } from 'pcui';
 
 import { Element, ElementType } from '../../element';
@@ -156,6 +158,7 @@ class StimuliList extends Container {
             if (!stimulus) {
                 return;
             }
+            stimulus.remove();
             stimulus.destroy();
         });
     }

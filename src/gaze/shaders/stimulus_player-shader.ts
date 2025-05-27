@@ -22,15 +22,21 @@ const vertexShader = /* glsl */ `
 
 const fragmentShader = /* glsl */ `
     uniform float currentTime;
+    uniform float stimulusRadius;
+    uniform float stimulusIntensity;
+
     varying vec3 stimulusScreenPosition;
 
     void main() {
-        float stimulusIntensity = sin(currentTime * 10.0) * 0.5 + 0.5;
-        vec4 stimulusColor = vec4(1.0, 1.0, 1.0, 1.0);
+        float intensity = sin(currentTime * 10.0) * 0.5 + 0.5;
+        intensity *= stimulusIntensity;
+        vec3 stimulusColor = vec3(1.0, 1.0, 1.0);
         float stimFragDist = distance(stimulusScreenPosition.xy, gl_FragCoord.xy);
 
-        if (stimFragDist <= 32.0) {
-            gl_FragColor = vec4(stimulusColor.xyz * stimulusIntensity, 0.7);
+        if (stimFragDist <= stimulusRadius) {
+            float sigma = stimulusRadius / 3.0;
+            float alpha = exp(- (stimFragDist * stimFragDist) / (2.0 * sigma * sigma));
+            gl_FragColor = vec4(stimulusColor * intensity, alpha);
         } else {
             discard;
         }

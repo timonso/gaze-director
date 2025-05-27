@@ -8,13 +8,10 @@ import {
     Entity,
     ShaderMaterial,
     Vec3,
-    Component,
     EventHandle,
     MeshInstance,
     Mesh,
     GraphicsDevice,
-    Tracing,
-    TRACEID_SHADER_ALLOC,
     CULLFACE_BACK
 } from 'playcanvas';
 
@@ -29,7 +26,7 @@ import * as playerShaders from './shaders/stimulus_player-shader';
 
 const bound = new BoundingBox();
 
-const DEBUG_SCALE = 0.1;
+const DEBUG_SCALE = 0.01;
 
 function createQuadMesh(graphicsDevice: GraphicsDevice) {
     const mesh = new Mesh(graphicsDevice);
@@ -69,10 +66,12 @@ class StimulusShape extends Element {
     active: boolean = true;
     visible: boolean = true;
     name: string = 'stimulus';
+    screenPosition: Vec3 = new Vec3(0, 0, 0);
 
     startFrame: number;
-    maxDuration: number; // [frames]
-    _radius: number;
+    // TODO: convert to frames
+    maxDuration: number = 2.0; // [seconds]
+    _radius: number = 32; // [px]
     _debugRadius: number = 1.0; // [scene units]
     _updateHandle: EventHandle;
     _enableHandle: EventHandle;
@@ -82,8 +81,8 @@ class StimulusShape extends Element {
         scene: Scene,
         events: Events,
         position: Vec3 = new Vec3(0, 0, 0),
-        radius: number = 1.0,
-        maxDuration: number = 10,
+        radius: number = 32,
+        maxDuration: number = 2.0,
         startFrame: number = 0
     ) {
         super(ElementType.gaze_stimulus);
@@ -104,12 +103,14 @@ class StimulusShape extends Element {
 
         this.maxDuration = maxDuration;
         this.startFrame = startFrame;
+        let frameRate = 30;
+        events.fire('timeline.frameRate', frameRate);
+        const endFrame = this.startFrame + this.maxDuration * frameRate;
 
-        const endFrame = this.startFrame + this.maxDuration;
-
-        this._radius = radius;
         this.name = `stim [ r: ${this.radius} | s: ${this.startFrame} | d: ${this.maxDuration} ]`;
-
+        scene.camera.worldToScreen(position, this.screenPosition);
+        console.log(this.screenPosition);
+        this._radius = radius;
         const r = (this._debugRadius = this._radius * DEBUG_SCALE);
         this.editorEntity.setLocalPosition(position);
         this.editorEntity.setLocalScale(r, r, r);
@@ -138,7 +139,6 @@ class StimulusShape extends Element {
             }
         );
 
-        // window.addEventListener('resize', () => this.updateCanvasResolution(scene));
         events.on('camera.resize', () => this.updateCanvasResolution(scene));
     }
 
@@ -160,11 +160,13 @@ class StimulusShape extends Element {
                     .getTranslation()
                     .toArray() as number[]
         );
+        this.playerMaterial.setParameter('stimulusRadius', this.radius);
+        this.playerMaterial.setParameter('stimulusIntensity', 1.0);
         this.playerMaterial.update();
 
         this.updateCanvasResolution();
 
-        this.editorMaterial.setParameter('radius', this._radius || 1.0); // [px]
+        this.editorMaterial.setParameter('radius', this._debugRadius);
         this.editorMaterial.update();
 
         this.editorEntity.render.layers = [this.scene.debugLayer.id];
@@ -186,9 +188,10 @@ class StimulusShape extends Element {
     }
 
     remove() {
-        this.editorEntity.removeChild(this.editorEntity);
+        this.editorEntity.removeChild(this.playerEntity);
         this.scene.contentRoot.removeChild(this.editorEntity);
         this.scene.boundDirty = true;
+        // console.log(`Removed stimulus: ${this.name}`);
     }
 
     destroy() {
@@ -196,20 +199,13 @@ class StimulusShape extends Element {
         this._enableHandle?.off();
         this._materialUpdateHandle?.off();
         super.destroy();
+        // console.log(`Destroyed stimulus: ${this.name}`);
     }
 
     serialize(serializer: Serializer): void {
         serializer.packa(this.editorEntity.getWorldTransform().data);
         // serializer.pack(this.radius);
     }
-
-    // onPreRender() {
-    //     this.target.getWorldTransform().getTranslation(v);
-    //     this.material.setParameter('sphere', [v.x, v.y, v.z, this.radius]);
-
-    //     const device = this.scene.graphicsDevice;
-    //     device.scope.resolve('targetSize').setValue([device.width, device.height]);
-    // }
 
     moved() {
         this.updateBound();

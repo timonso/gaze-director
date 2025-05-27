@@ -40,16 +40,16 @@ class StimulusSelection {
 
         const addButton = new Button({ text: 'Add', class: 'select-toolbar-button' });
         const radiusSlider = new NumericInput({
-            precision: 2,
+            precision: 0,
             value: stimulus.radius,
-            placeholder: 'Radius',
-            width: 80,
+            placeholder: 'Radius [px]',
+            width: 100,
             min: 1.0
         });
         const maxDurationSlider = new NumericInput({
-            precision: 1,
+            precision: 0,
             value: stimulus.maxDuration,
-            placeholder: 'max. Duration ',
+            placeholder: 'Duration [s]',
             width: 120,
             min: 1.0
         });
