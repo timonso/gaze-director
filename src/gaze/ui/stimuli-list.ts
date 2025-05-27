@@ -2,10 +2,7 @@ import { Container, Label, Element as PcuiElement } from 'pcui';
 
 import { Element, ElementType } from '../../element';
 import { Events } from '../../events';
-import { Splat } from '../../splat';
 import deleteSvg from '../../ui/svg/delete.svg';
-import hiddenSvg from '../../ui/svg/hidden.svg';
-import shownSvg from '../../ui/svg/shown.svg';
 import { StimulusShape } from '../stimulus-shape';
 
 const createSvg = (svgString: string) => {
@@ -18,8 +15,6 @@ class StimulusItem extends Container {
     setName: (value: string) => void;
     getSelected: () => boolean;
     setSelected: (value: boolean) => void;
-    getVisible: () => boolean;
-    setVisible: (value: boolean) => void;
     destroy: () => void;
 
     constructor(name: string, args = {}) {
@@ -35,25 +30,12 @@ class StimulusItem extends Container {
             text: name
         });
 
-        const visible = new PcuiElement({
-            dom: createSvg(shownSvg),
-            class: 'splat-item-visible'
-        });
-
-        const invisible = new PcuiElement({
-            dom: createSvg(hiddenSvg),
-            class: 'splat-item-visible',
-            hidden: true
-        });
-
         const remove = new PcuiElement({
             dom: createSvg(deleteSvg),
             class: 'splat-item-delete'
         });
 
         this.append(text);
-        this.append(visible);
-        this.append(invisible);
         this.append(remove);
 
         this.getName = () => {
@@ -80,42 +62,14 @@ class StimulusItem extends Container {
             }
         };
 
-        this.getVisible = () => {
-            return this.class.contains('visible');
-        };
-
-        this.setVisible = (value: boolean) => {
-            if (value !== this.visible) {
-                visible.hidden = !value;
-                invisible.hidden = value;
-                if (value) {
-                    this.class.add('visible');
-                    this.emit('visible', this);
-                } else {
-                    this.class.remove('visible');
-                    this.emit('invisible', this);
-                }
-            }
-        };
-
-        const toggleVisible = (event: MouseEvent) => {
-            event.stopPropagation();
-            this.visible = !this.visible;
-        };
-
         const handleRemove = (event: MouseEvent) => {
             event.stopPropagation();
             this.emit('removeClicked', this);
         };
 
-        // handle clicks
-        visible.dom.addEventListener('click', toggleVisible);
-        invisible.dom.addEventListener('click', toggleVisible);
         remove.dom.addEventListener('click', handleRemove);
 
         this.destroy = () => {
-            visible.dom.removeEventListener('click', toggleVisible);
-            invisible.dom.removeEventListener('click', toggleVisible);
             remove.dom.removeEventListener('click', handleRemove);
         };
     }
@@ -134,14 +88,6 @@ class StimulusItem extends Container {
 
     get selected() {
         return this.getSelected();
-    }
-
-    set visible(value) {
-        this.setVisible(value);
-    }
-
-    get visible() {
-        return this.getVisible();
     }
 }
 
@@ -162,18 +108,6 @@ class StimuliList extends Container {
                 const item = new StimulusItem(stimulus.name);
                 this.append(item);
                 items.set(stimulus, item);
-
-                item.on('visible', () => {
-                    stimulus.visible = true;
-
-                    // also select it if there is no other selection
-                    if (!events.invoke('selection')) {
-                        events.fire('selection', stimulus);
-                    }
-                });
-                item.on('invisible', () => {
-                    stimulus.visible = false;
-                });
             }
         });
 
@@ -194,17 +128,10 @@ class StimuliList extends Container {
             });
         });
 
-        events.on('splat.name', (splat: StimulusShape) => {
-            const item = items.get(splat);
-            if (item) {
-                item.name = splat.name;
-            }
-        });
-
-        events.on('splat.visibility', (stimulus: StimulusShape) => {
+        events.on('splat.name', (stimulus: StimulusShape) => {
             const item = items.get(stimulus);
             if (item) {
-                item.visible = stimulus.visible;
+                item.name = stimulus.name;
             }
         });
 
@@ -229,16 +156,7 @@ class StimuliList extends Container {
             if (!stimulus) {
                 return;
             }
-
-            // const result = await events.invoke('showPopup', {
-            //     type: 'yesno',
-            //     header: 'Remove Splat',
-            //     message: `Are you sure you want to remove '${stimulus.name}' from the scene? This operation can not be undone.`
-            // });
-
-            // if (result?.action === 'yes') {
             stimulus.destroy();
-            // }
         });
     }
 

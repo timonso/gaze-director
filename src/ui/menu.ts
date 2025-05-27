@@ -88,7 +88,7 @@ class Menu extends Container {
 
         // toggle UI visibility
         const toggleHidden = () => {
-            events.fire('ui.toggle');
+            events.fire('gaze.toggleInterface');
         };
 
         // collapse menu on mobile
@@ -262,7 +262,7 @@ class Menu extends Container {
             icon: 'E135',
             onSelect: async () => await events.fire('gaze.stopTracking')
         }, {
-            text: 'Add Target',
+            text: 'Add Stimulus',
             icon: 'E135',
             onSelect: async () => await events.fire('tool.stimulusSelection')
         }]);

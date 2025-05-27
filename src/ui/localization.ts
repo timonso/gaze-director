@@ -410,7 +410,7 @@ const localizeInit = () => {
 
                     // Right toolbar
                     'tooltip.splat-mode': 'Splat Mode ( M )',
-                    'tooltip.show-hide': 'Show/Hide Splats ( Space )',
+                    'tooltip.show-hide': 'Show/Hide Splats ( O )',
                     'tooltip.frame-selection': 'Frame Selection ( F )',
                     'tooltip.camera-reset': 'Reset Camera',
                     'tooltip.color-panel': 'Colors',
@@ -889,7 +889,7 @@ const localizeInit = () => {
 
                     // Right toolbar
                     'tooltip.splat-mode': 'スプラットモード ( M )',
-                    'tooltip.show-hide': 'スプラットの表示/非表示 ( Space )',
+                    'tooltip.show-hide': 'スプラットの表示/非表示 ( O )',
                     'tooltip.frame-selection': '選択をフレームイン ( F )',
                     'tooltip.camera-reset': 'カメラをリセット',
                     'tooltip.color-panel': '色',
@@ -1121,7 +1121,7 @@ const localizeInit = () => {
 
                     // Right toolbar
                     'tooltip.splat-mode': 'Splat 모드 ( M )',
-                    'tooltip.show-hide': '스플래츠 표시/숨기기 ( Space )',
+                    'tooltip.show-hide': '스플래츠 표시/숨기기 ( O )',
                     'tooltip.frame-selection': '프레임 선택 ( F )',
                     'tooltip.camera-reset': '카메라 재설정',
                     'tooltip.color-panel': '색상',
@@ -1354,7 +1354,7 @@ const localizeInit = () => {
 
                     // Right toolbar
                     'tooltip.splat-mode': 'Splat 模式 ( M )',
-                    'tooltip.show-hide': '显示/隐藏 Splats ( Space )',
+                    'tooltip.show-hide': '显示/隐藏 Splats ( O )',
                     'tooltip.frame-selection': '框选 ( F )',
                     'tooltip.camera-reset': '重置相机',
                     'tooltip.color-panel': '颜色',

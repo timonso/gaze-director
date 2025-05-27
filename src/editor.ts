@@ -3,7 +3,6 @@ import { Color, Mat4, Texture, Vec3, Vec4 } from 'playcanvas';
 import { EditHistory } from './edit-history';
 import { SelectAllOp, SelectNoneOp, SelectInvertOp, SelectOp, HideSelectionOp, UnhideAllOp, DeleteSelectionOp, ResetOp, MultiOp, AddSplatOp, AddStimulusOp } from './edit-ops';
 import { Events } from './events';
-import { StimulusShape } from './gaze/stimulus-shape';
 import { Scene } from './scene';
 import { BufferWriter } from './serialize/writer';
 import { Splat } from './splat';
@@ -459,11 +458,6 @@ const registerEditorEvents = (events: Events, editHistory: EditHistory, scene: S
         selectedSplats().forEach((splat) => {
             editHistory.add(new ResetOp(splat));
         });
-    });
-
-    events.on('gaze.addStimulus', (position: Vec3 = new Vec3(0, 0, 0), radius: number = 1.0, maxDuration: number = 10, startFrame: number = 0) => {
-        const stimulus = new StimulusShape(events, position, radius, maxDuration, startFrame);
-        editHistory.add(new AddStimulusOp(scene, stimulus));
     });
 
     const setAllData = (value: boolean) => {

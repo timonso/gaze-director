@@ -6,7 +6,8 @@ import { EditHistory } from './edit-history';
 import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { initFileHandler } from './file-handler';
-import { startGazeTracking, stopGazeTracking } from './gaze/gaze-tracker';
+import { GazeDirector } from './gaze/gaze-director';
+import { ScenePlayer } from './gaze/scene-player';
 import { StimulusSelection } from './gaze/tools/stimulus-selection';
 import { registerPlySequenceEvents } from './ply-sequence';
 import { registerPublishEvents } from './publish';
@@ -96,8 +97,9 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['Z', 'z'], { event: 'edit.redo', ctrl: true, shift: true, capture: true });
     shortcuts.register(['M', 'm'], { event: 'camera.toggleMode' });
     shortcuts.register(['D', 'd'], { event: 'dataPanel.toggle' });
-    shortcuts.register([' '], { event: 'camera.toggleOverlay' });
-    shortcuts.register(['T', 't'], { event: 'ui.toggle' });
+    shortcuts.register(['O', 'o'], { event: 'camera.toggleOverlay' });
+    shortcuts.register([' '], { event: 'gaze.playScene' });
+    shortcuts.register(['I', 'i'], { event: 'gaze.toggleInterface' });
 
     return shortcuts;
 };
@@ -212,20 +214,6 @@ const main = async () => {
         scene.forceRender = true;
     });
 
-    // gaze direction events
-
-    events.on('ui.toggle', () => {
-        document.body.classList.toggle('hidden');
-    });
-
-    events.on('gaze.startTracking', () => {
-        startGazeTracking();
-    });
-
-    events.on('gaze.stopTracking', () => {
-        stopGazeTracking();
-    });
-
     // initialize colors from application config
     const toColor = (value: { r: number, g: number, b: number, a: number }) => {
         return new Color(value.r, value.g, value.b, value.a);
@@ -246,6 +234,10 @@ const main = async () => {
         context: maskContext
     };
 
+    // gaze tool initialization
+    const scenePlayer = new ScenePlayer(scene, events);
+    const gazeTracker = new GazeDirector(scene, events, editHistory);
+
     // tool manager
     const toolManager = new ToolManager(events);
     toolManager.register('rectSelection', new RectSelection(events, editorUI.toolsContainer.dom));
@@ -253,7 +245,7 @@ const main = async () => {
     toolManager.register('polygonSelection', new PolygonSelection(events, editorUI.toolsContainer.dom, mask));
     toolManager.register('lassoSelection', new LassoSelection(events, editorUI.toolsContainer.dom, mask));
     toolManager.register('sphereSelection', new SphereSelection(events, scene, editorUI.canvasContainer));
-    toolManager.register('stimulusSelection', new StimulusSelection(events, scene, editorUI.canvasContainer));
+    toolManager.register('stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('boxSelection', new BoxSelection(events, scene, editorUI.canvasContainer));
     toolManager.register('move', new MoveTool(events, scene));
     toolManager.register('rotate', new RotateTool(events, scene));

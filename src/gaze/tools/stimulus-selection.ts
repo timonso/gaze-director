@@ -1,7 +1,10 @@
+// adapted from '/src/tools/sphere-selection.ts'
+
 import { Button, Container, NumericInput } from 'pcui';
 import { TranslateGizmo, Vec3 } from 'playcanvas';
 
-import { Events } from '../../events';
+import { Events } from 'src/events';
+
 import { Scene } from '../../scene';
 import { Splat } from '../../splat';
 import { StimulusShape } from '../stimulus-shape';
@@ -12,8 +15,8 @@ class StimulusSelection {
 
     active = false;
 
-    constructor(events: Events, scene: Scene, canvasContainer: Container) {
-        const stimulus = new StimulusShape(events);
+    constructor(scene: Scene, events: Events, canvasContainer: Container) {
+        const stimulus = new StimulusShape(scene, events);
 
         const gizmo = new TranslateGizmo(scene.camera.entity.camera, scene.gizmoLayer);
 
@@ -51,7 +54,6 @@ class StimulusSelection {
             min: 1.0
         });
 
-        // stimulusToolbar.append(removeButton);
         stimulusToolbar.append(radiusSlider);
         stimulusToolbar.append(maxDurationSlider);
         stimulusToolbar.append(addButton);
@@ -60,7 +62,7 @@ class StimulusSelection {
 
         addButton.dom.addEventListener('pointerdown', (e) => {
             const currentFrame = events.invoke('timeline.frame');
-            e.stopPropagation(); events.fire('gaze.addStimulus', stimulus.pivot.getPosition(), stimulus._radius, stimulus.maxDuration, currentFrame);
+            e.stopPropagation(); events.fire('gaze.addStimulus', stimulus.editorEntity.getPosition(), stimulus._radius, stimulus.maxDuration, currentFrame);
         });
 
         radiusSlider.on('change', () => {
@@ -72,8 +74,8 @@ class StimulusSelection {
 
         events.on('camera.focalPointPicked', (details: { splat: Splat, position: Vec3 }) => {
             if (this.active) {
-                stimulus.pivot.setPosition(details.position);
-                gizmo.attach([stimulus.pivot]);
+                stimulus.editorEntity.setPosition(details.position);
+                gizmo.attach([stimulus.editorEntity]);
             }
         });
 
@@ -92,7 +94,7 @@ class StimulusSelection {
         this.activate = () => {
             this.active = true;
             scene.add(stimulus);
-            gizmo.attach([stimulus.pivot]);
+            gizmo.attach([stimulus.editorEntity]);
             stimulusToolbar.hidden = false;
         };
 
