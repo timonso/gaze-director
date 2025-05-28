@@ -5,7 +5,7 @@ import { Container, Label, Element as PcuiElement } from 'pcui';
 import { Element, ElementType } from '../../element';
 import { Events } from '../../events';
 import deleteSvg from '../../ui/svg/delete.svg';
-import { StimulusShape } from '../stimulus-shape';
+import { Stimulus } from '../stimulus';
 
 const createSvg = (svgString: string) => {
     const decodedStr = decodeURIComponent(svgString.substring('data:image/svg+xml,'.length));
@@ -102,11 +102,11 @@ class StimuliList extends Container {
 
         super(args);
 
-        const items = new Map<StimulusShape, StimulusItem>();
+        const items = new Map<Stimulus, StimulusItem>();
 
         events.on('scene.elementAdded', (element: Element) => {
             if (element.type === ElementType.gaze_stimulus) {
-                const stimulus = element as StimulusShape;
+                const stimulus = element as Stimulus;
                 const item = new StimulusItem(stimulus.name);
                 this.append(item);
                 items.set(stimulus, item);
@@ -115,7 +115,7 @@ class StimuliList extends Container {
 
         events.on('scene.elementRemoved', (element: Element) => {
             if (element.type === ElementType.gaze_stimulus) {
-                const stimulus = element as StimulusShape;
+                const stimulus = element as Stimulus;
                 const item = items.get(stimulus);
                 if (item) {
                     this.remove(item);
@@ -124,13 +124,13 @@ class StimuliList extends Container {
             }
         });
 
-        events.on('selection.changed', (selection: StimulusShape) => {
+        events.on('selection.changed', (selection: Stimulus) => {
             items.forEach((value, key) => {
                 value.selected = key === selection;
             });
         });
 
-        events.on('splat.name', (stimulus: StimulusShape) => {
+        events.on('splat.name', (stimulus: Stimulus) => {
             const item = items.get(stimulus);
             if (item) {
                 item.name = stimulus.name;

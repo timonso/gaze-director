@@ -58,7 +58,7 @@ function createMaterial(name: string, vertexShader: string, fragmentShader: stri
     return material;
 }
 
-class StimulusShape extends Element {
+class Stimulus extends Element {
     editorEntity: Entity;
     playerEntity: Entity;
     editorMaterial: ShaderMaterial;
@@ -67,23 +67,37 @@ class StimulusShape extends Element {
     visible: boolean = true;
     name: string = 'stimulus';
     screenPosition: Vec3 = new Vec3(0, 0, 0);
+    intensity: number = 1.0;
 
     startFrame: number;
-    // TODO: convert to frames
-    maxDuration: number = 2.0; // [seconds]
+    duration: number = 2.0; // [seconds]
     _radius: number = 32; // [px]
     _debugRadius: number = 1.0; // [scene units]
     _updateHandle: EventHandle;
     _enableHandle: EventHandle;
     _materialUpdateHandle: EventHandle;
 
+    set radius(radius: number) {
+        this._radius = radius;
+
+        const r = (this._debugRadius = radius * DEBUG_SCALE);
+        this.editorEntity.setLocalScale(r, r, r);
+
+        this.updateBound();
+    }
+
+    get radius() {
+        return this._radius;
+    }
+
     constructor(
         scene: Scene,
         events: Events,
         position: Vec3 = new Vec3(0, 0, 0),
         radius: number = 32,
-        maxDuration: number = 2.0,
-        startFrame: number = 0
+        duration: number = 2.0,
+        startFrame: number = 0,
+        intensity: number = 1.0
     ) {
         super(ElementType.gaze_stimulus);
 
@@ -101,19 +115,23 @@ class StimulusShape extends Element {
         this.editorMaterial = createMaterial('stimulus_editor', editorShaders.vertexShader, editorShaders.fragmentShader);
         this.playerMaterial = createMaterial('stimulus_player', playerShaders.vertexShader, playerShaders.fragmentShader);
 
-        this.maxDuration = maxDuration;
+        this.duration = duration;
         this.startFrame = startFrame;
         let frameRate = 30;
         events.fire('timeline.frameRate', frameRate);
-        const endFrame = this.startFrame + this.maxDuration * frameRate;
+        const endFrame = this.startFrame + this.duration * frameRate;
 
-        this.name = `stim [ r: ${this.radius} | s: ${this.startFrame} | d: ${this.maxDuration} ]`;
         scene.camera.worldToScreen(position, this.screenPosition);
-        console.log(this.screenPosition);
+        this.screenPosition.y = scene.graphicsDevice.height - this.screenPosition.y;
+        // console.log(this.screenPosition);
+
         this._radius = radius;
+        this.intensity = intensity;
         const r = (this._debugRadius = this._radius * DEBUG_SCALE);
-        this.editorEntity.setLocalPosition(position);
+        this.editorEntity.setPosition(position);
         this.editorEntity.setLocalScale(r, r, r);
+
+        this.name = `stim [ r: ${this.radius} | s: ${this.startFrame} | d: ${this.duration} | i: ${this.intensity} ]`;
 
         const editorRenderer = this.editorEntity.render;
         const playerRenderer = this.playerEntity.render;
@@ -134,10 +152,17 @@ class StimulusShape extends Element {
         this._materialUpdateHandle = events.on(
             'timeline.time',
             (time: number) => {
+                scene.camera.worldToScreen(position, this.screenPosition);
+                this.screenPosition.y = scene.graphicsDevice.height - this.screenPosition.y;
+                this.playerMaterial.setParameter('stimulusScreenPosition', this.screenPosition.toArray() as number[]);
                 this.playerMaterial.setParameter('currentTime', time);
                 this.playerMaterial.update();
             }
         );
+
+        // scene.app.scene.on('postcull', () => {
+        //     console.log(this.playerEntity.render.meshInstances[0].visibleThisFrame);
+        // });
 
         events.on('camera.resize', () => this.updateCanvasResolution(scene));
     }
@@ -160,8 +185,12 @@ class StimulusShape extends Element {
                     .getTranslation()
                     .toArray() as number[]
         );
+        this.playerMaterial.setParameter(
+            'stimulusScreenPosition',
+            this.screenPosition.toArray() as number[]
+        );
+        this.playerMaterial.setParameter('stimulusIntensity', this.intensity);
         this.playerMaterial.setParameter('stimulusRadius', this.radius);
-        this.playerMaterial.setParameter('stimulusIntensity', 1.0);
         this.playerMaterial.update();
 
         this.updateCanvasResolution();
@@ -220,19 +249,6 @@ class StimulusShape extends Element {
     get worldBound(): BoundingBox | null {
         return bound;
     }
-
-    set radius(radius: number) {
-        this._radius = radius;
-
-        const r = (this._debugRadius = radius * DEBUG_SCALE);
-        this.editorEntity.setLocalScale(r, r, r);
-
-        this.updateBound();
-    }
-
-    get radius() {
-        return this._radius;
-    }
 }
 
-export { StimulusShape };
+export { Stimulus };

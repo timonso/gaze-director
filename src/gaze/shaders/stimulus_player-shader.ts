@@ -8,7 +8,7 @@ const vertexShader = /* glsl */ `
     uniform vec2 canvasResolution;
     uniform vec3 stimulusWorldPosition;
 
-    varying mediump vec3 stimulusScreenPosition;
+    uniform mediump vec3 stimulusScreenPosition;
 
     void main() {
         gl_Position = vec4(vertex_position, 1.0);

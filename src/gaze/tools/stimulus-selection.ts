@@ -7,7 +7,7 @@ import { Events } from 'src/events';
 
 import { Scene } from '../../scene';
 import { Splat } from '../../splat';
-import { StimulusShape } from '../stimulus-shape';
+import { Stimulus } from '../stimulus';
 
 class StimulusSelection {
     activate: () => void;
@@ -16,7 +16,7 @@ class StimulusSelection {
     active = false;
 
     constructor(scene: Scene, events: Events, canvasContainer: Container) {
-        const stimulus = new StimulusShape(scene, events);
+        const stimulus = new Stimulus(scene, events);
 
         const gizmo = new TranslateGizmo(scene.camera.entity.camera, scene.gizmoLayer);
 
@@ -46,30 +46,42 @@ class StimulusSelection {
             width: 100,
             min: 1.0
         });
-        const maxDurationSlider = new NumericInput({
+        const intensitySlider = new NumericInput({
+            precision: 3,
+            value: stimulus.intensity,
+            placeholder: 'Intensity',
+            width: 100,
+            min: 0.0,
+            max: 1.0
+        });
+        const durationSlider = new NumericInput({
             precision: 0,
-            value: stimulus.maxDuration,
+            value: stimulus.duration,
             placeholder: 'Duration [s]',
-            width: 120,
+            width: 100,
             min: 1.0
         });
 
         stimulusToolbar.append(radiusSlider);
-        stimulusToolbar.append(maxDurationSlider);
+        stimulusToolbar.append(durationSlider);
+        stimulusToolbar.append(intensitySlider);
         stimulusToolbar.append(addButton);
 
         canvasContainer.append(stimulusToolbar);
 
         addButton.dom.addEventListener('pointerdown', (e) => {
             const currentFrame = events.invoke('timeline.frame');
-            e.stopPropagation(); events.fire('gaze.addStimulus', stimulus.editorEntity.getPosition(), stimulus._radius, stimulus.maxDuration, currentFrame);
+            e.stopPropagation(); events.fire('gaze.addStimulus', stimulus.editorEntity.getPosition(), stimulus._radius, stimulus.duration, currentFrame, stimulus.intensity);
         });
 
         radiusSlider.on('change', () => {
             stimulus.radius = radiusSlider.value;
         });
-        maxDurationSlider.on('change', () => {
-            stimulus.maxDuration = maxDurationSlider.value;
+        durationSlider.on('change', () => {
+            stimulus.duration = durationSlider.value;
+        });
+        intensitySlider.on('change', () => {
+            stimulus.intensity = intensitySlider.value;
         });
 
         events.on('camera.focalPointPicked', (details: { splat: Splat, position: Vec3 }) => {
