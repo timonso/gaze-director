@@ -234,10 +234,6 @@ const main = async () => {
         context: maskContext
     };
 
-    // gaze tool initialization
-    const scenePlayer = new ScenePlayer(scene, events);
-    const gazeTracker = new GazeDirector(scene, events, editHistory);
-
     // tool manager
     const toolManager = new ToolManager(events);
     toolManager.register('rectSelection', new RectSelection(events, editorUI.toolsContainer.dom));
@@ -266,6 +262,10 @@ const main = async () => {
     registerRenderEvents(scene, events);
     initShortcuts(events);
     initFileHandler(scene, events, editorUI.appContainer.dom, remoteStorageDetails);
+
+    // gaze tool initialization
+    const gazeTracker = new GazeDirector(scene, events, editHistory);
+    const scenePlayer = new ScenePlayer(scene, events);
 
     // load async models
     scene.start();

@@ -12,7 +12,10 @@ import {
     MeshInstance,
     Mesh,
     GraphicsDevice,
-    CULLFACE_BACK
+    CULLFACE_BACK,
+    DepthState,
+    FUNC_LESSEQUAL,
+    CULLFACE_FRONT
 } from 'playcanvas';
 
 import { Events } from 'src/events';
@@ -45,7 +48,7 @@ function createMaterial(name: string, vertexShader: string, fragmentShader: stri
         vertexCode: vertexShader,
         fragmentCode: fragmentShader
     });
-    material.cull = CULLFACE_BACK;
+    // material.cull = CULLFACE_BACK;
     material.blendState = new BlendState(
         true,
         BLENDEQUATION_ADD,
@@ -55,6 +58,7 @@ function createMaterial(name: string, vertexShader: string, fragmentShader: stri
         BLENDMODE_ONE,
         BLENDMODE_ONE_MINUS_SRC_ALPHA
     );
+    material.depthState = new DepthState(FUNC_LESSEQUAL, true);
     return material;
 }
 
@@ -71,6 +75,7 @@ class Stimulus extends Element {
 
     startFrame: number;
     duration: number = 2.0; // [seconds]
+    frequency: number = 10.0; // [Hz]
     _radius: number = 32; // [px]
     _debugRadius: number = 1.0; // [scene units]
     _updateHandle: EventHandle;
@@ -97,7 +102,8 @@ class Stimulus extends Element {
         radius: number = 32,
         duration: number = 2.0,
         startFrame: number = 0,
-        intensity: number = 1.0
+        intensity: number = 1.0,
+        frequency: number = 10.0
     ) {
         super(ElementType.gaze_stimulus);
 
@@ -117,7 +123,9 @@ class Stimulus extends Element {
 
         this.duration = duration;
         this.startFrame = startFrame;
-        let frameRate = 30;
+
+        // eslint-disable-next-line prefer-const
+        let frameRate = 30; // [fps]
         events.fire('timeline.frameRate', frameRate);
         const endFrame = this.startFrame + this.duration * frameRate;
 
@@ -149,13 +157,14 @@ class Stimulus extends Element {
             }
         );
 
+        const secondsPerFrame = 1 / frameRate;
         this._materialUpdateHandle = events.on(
             'timeline.time',
             (time: number) => {
                 scene.camera.worldToScreen(position, this.screenPosition);
                 this.screenPosition.y = scene.graphicsDevice.height - this.screenPosition.y;
                 this.playerMaterial.setParameter('stimulusScreenPosition', this.screenPosition.toArray() as number[]);
-                this.playerMaterial.setParameter('currentTime', time);
+                this.playerMaterial.setParameter('currentTime', time * secondsPerFrame);
                 this.playerMaterial.update();
             }
         );
@@ -191,6 +200,7 @@ class Stimulus extends Element {
         );
         this.playerMaterial.setParameter('stimulusIntensity', this.intensity);
         this.playerMaterial.setParameter('stimulusRadius', this.radius);
+        this.playerMaterial.setParameter('frequency', this.frequency); // [Hz]
         this.playerMaterial.update();
 
         this.updateCanvasResolution();
@@ -198,7 +208,7 @@ class Stimulus extends Element {
         this.editorMaterial.setParameter('radius', this._debugRadius);
         this.editorMaterial.update();
 
-        this.editorEntity.render.layers = [this.scene.debugLayer.id];
+        this.editorEntity.render.layers = [this.scene.gaze_targetLayer.id];
         this.playerEntity.render.layers = [this.scene.gaze_stimulusLayer.id];
 
         this.updateBound();
