@@ -34,10 +34,11 @@ class Scene {
     backgroundLayer: Layer;
     shadowLayer: Layer;
     debugLayer: Layer;
-    gaze_stimulusLayer: Layer;
-    gaze_targetLayer: Layer;
     overlayLayer: Layer;
     gizmoLayer: Layer;
+    gaze_stimulusLayer: Layer;
+    gaze_editorLayer: Layer;
+    gaze_targetLayer: Layer;
     sceneState = [new SceneState(), new SceneState()];
     elements: Element[] = [];
     boundStorage = new BoundingBox();
@@ -168,6 +169,14 @@ class Scene {
             transparentSortMode: SORTMODE_NONE
         });
 
+        this.gaze_editorLayer = new Layer({
+            enabled: true,
+            name: 'Gaze Editor Layer',
+            clearDepthBuffer: false,
+            opaqueSortMode: SORTMODE_NONE,
+            transparentSortMode: SORTMODE_NONE
+        });
+
         this.gaze_stimulusLayer = new Layer({
             enabled: true,
             name: 'Gaze Stimulus Layer'
@@ -206,6 +215,7 @@ class Scene {
         layers.insert(this.shadowLayer, idx + 1);
         layers.insert(this.debugLayer, idx + 1);
         layers.insert(this.gaze_targetLayer, idx + 1);
+        layers.push(this.gaze_editorLayer);
         layers.push(this.overlayLayer);
         layers.push(this.gizmoLayer);
         layers.push(this.gaze_stimulusLayer);

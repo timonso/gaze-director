@@ -9,6 +9,7 @@ class ScenePlayer {
 
         events.on('timeline.setPlaying', (value: boolean) => {
             scene.app.autoRender = value;
+            scene.gaze_editorLayer.enabled = !value;
         });
 
         events.on('gaze.toggleInterface', () => {

@@ -9,8 +9,6 @@ import {
     ShaderMaterial,
     Vec3,
     EventHandle,
-    Mesh,
-    GraphicsDevice,
     DepthState,
     FUNC_LESSEQUAL
 } from 'playcanvas';
@@ -21,7 +19,6 @@ import { Scene } from 'src/scene';
 import { Element, ElementType } from '../element';
 import { Serializer } from '../serializer';
 import * as editorShaders from './shaders/stimulus_editor-shader';
-import { StimulusRenderer } from './stimulus-renderer';
 
 const bound = new BoundingBox();
 
@@ -55,6 +52,7 @@ class Stimulus extends Element {
     editorMaterial: ShaderMaterial;
     playerMaterial: ShaderMaterial;
     name: string = 'stimulus';
+    worldPosition: Vec3 = new Vec3(0, 0, 0);
     screenPosition: Vec3 = new Vec3(0, 0, 0);
     intensity: number = 1.0;
 
@@ -103,35 +101,29 @@ class Stimulus extends Element {
         this.frequency = frequency;
         this.intensity = intensity;
 
-        // this.renderer = events.invoke('gaze.getStimulusRenderer');
-
         this._playerRadius = radius;
         const r = (this._editorRadius = radius * EDITOR_SCALE);
+        this.worldPosition = position;
         this.editorEntity.setPosition(position);
         this.editorEntity.setLocalScale(r, r, r);
-
-        // eslint-disable-next-line prefer-const
-
-        // scene.app.scene.on('postcull', () => {
-        //     console.log(this.playerEntity.render.meshInstances[0].visibleThisFrame);
-        // });
     }
 
     add() {
-        this.scene.contentRoot.addChild(this.editorEntity);
+        const scene = this.scene;
+        const events = this.scene.events;
+
+        scene.contentRoot.addChild(this.editorEntity);
 
         this.editorEntity.render.meshInstances[0].material = this.editorMaterial;
 
         this.editorMaterial.setParameter('radius', this._editorRadius);
         this.editorMaterial.update();
 
-        this.editorEntity.render.layers = [this.scene.gaze_targetLayer.id];
+        this.editorEntity.render.layers = [scene.gaze_editorLayer.id];
 
         this.updateBound();
 
-        const scene = this.scene;
-        const events = this.scene.events;
-
+        // eslint-disable-next-line prefer-const
         let frameRate = 30; // [fps]
         events.fire('timeline.frameRate', frameRate);
         const endFrame = this.startFrame + this.duration * frameRate;
@@ -152,11 +144,13 @@ class Stimulus extends Element {
                     events.fire('gaze.stimulusChanged', this);
                 }
                 // update stimulus projection
-                scene.camera.worldToScreen(this.editorEntity.getPosition(), this.screenPosition);
+                scene.camera.worldToScreen(this.worldPosition, this.screenPosition);
+
+                const culled = !scene.camera.entity.camera.frustum.containsPoint(this.worldPosition);
 
                 // TODO: perform gaze proximity check
                 const suppressed = false;
-                this.visible = this.active && !suppressed;
+                this.visible = this.active && !culled && !suppressed;
             }
         });
 
@@ -165,7 +159,6 @@ class Stimulus extends Element {
             (value: boolean) => {
                 this.active = false;
                 this.visible = false;
-                this.editorEntity.enabled = !value;
                 scene.forceRender = true;
             }
         );
