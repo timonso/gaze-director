@@ -9,6 +9,11 @@
 }
 
 .stimuli-list-container {
-    max-height: 300px;
+    max-height: 100px;
+    overflow: auto;
+}
+
+.targets-list-container {
+    max-height: 100px;
     overflow: auto;
 }

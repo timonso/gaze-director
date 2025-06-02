@@ -7,16 +7,16 @@ import { Events } from 'src/events';
 
 import { Scene } from '../../scene';
 import { Splat } from '../../splat';
-import { Stimulus } from '../stimulus';
+import { Target } from '../target';
 
-class StimulusSelection {
+class TargetSelection {
     activate: () => void;
     deactivate: () => void;
 
     active = false;
 
     constructor(scene: Scene, events: Events, canvasContainer: Container) {
-        const stimulus = new Stimulus();
+        const target = new Target(scene, events);
 
         const gizmo = new TranslateGizmo(scene.camera.entity.camera, scene.gizmoLayer);
 
@@ -25,80 +25,69 @@ class StimulusSelection {
         });
 
         gizmo.on('transform:move', () => {
-            stimulus.moved();
+            target.moved();
         });
 
         // ui
-        const stimulusToolbar = new Container({
+        const targetToolbar = new Container({
             id: 'select-toolbar',
             hidden: true
         });
 
-        stimulusToolbar.dom.addEventListener('pointerdown', (e) => {
+        targetToolbar.dom.addEventListener('pointerdown', (e) => {
             e.stopPropagation();
         });
 
         const addButton = new Button({ text: 'Add', class: 'select-toolbar-button' });
         const radiusSlider = new NumericInput({
             precision: 0,
-            value: stimulus.radius,
+            value: target.radius,
             placeholder: 'Radius [px]',
             width: 100,
             min: 1.0
         });
-        const intensitySlider = new NumericInput({
+        const opacitySlider = new NumericInput({
             precision: 3,
-            value: stimulus.intensity,
-            placeholder: 'Intensity',
+            value: target.opacity,
+            placeholder: 'Opacity',
             width: 100,
             min: 0.0,
             max: 1.0
         });
         const durationSlider = new NumericInput({
             precision: 0,
-            value: stimulus.duration,
+            value: target.duration,
             placeholder: 'Duration [s]',
             width: 100,
             min: 1.0
         });
-        const frequencySlider = new NumericInput({
-            precision: 2,
-            value: stimulus.frequency,
-            placeholder: 'Frequency [Hz]',
-            width: 100,
-            min: 1
-        });
 
-        stimulusToolbar.append(radiusSlider);
-        stimulusToolbar.append(durationSlider);
-        stimulusToolbar.append(intensitySlider);
-        stimulusToolbar.append(frequencySlider);
-        stimulusToolbar.append(addButton);
+        targetToolbar.append(radiusSlider);
+        targetToolbar.append(durationSlider);
+        targetToolbar.append(opacitySlider);
+        targetToolbar.append(addButton);
 
-        canvasContainer.append(stimulusToolbar);
+        canvasContainer.append(targetToolbar);
 
         addButton.dom.addEventListener('pointerdown', (e) => {
             const currentFrame = events.invoke('timeline.frame');
-            e.stopPropagation(); events.fire('gaze.addStimulus', stimulus.editorEntity.getPosition(), stimulus._playerRadius, stimulus.duration, currentFrame, stimulus.intensity, stimulus.frequency);
+            e.stopPropagation(); events.fire('gaze.addTarget', target.editorEntity.getPosition(), target._radius, target.duration, currentFrame, target.opacity);
         });
 
         radiusSlider.on('change', () => {
-            stimulus.radius = radiusSlider.value;
+            target.radius = radiusSlider.value;
         });
         durationSlider.on('change', () => {
-            stimulus.duration = durationSlider.value;
+            target.duration = durationSlider.value;
         });
-        intensitySlider.on('change', () => {
-            stimulus.intensity = intensitySlider.value;
-        });
-        frequencySlider.on('change', () => {
-            stimulus.frequency = frequencySlider.value;
+        opacitySlider.on('change', () => {
+            target.opacity = opacitySlider.value;
         });
 
         events.on('camera.focalPointPicked', (details: { splat: Splat, position: Vec3 }) => {
             if (this.active) {
-                stimulus.editorEntity.setPosition(details.position);
-                gizmo.attach([stimulus.editorEntity]);
+                target.editorEntity.setPosition(details.position);
+                gizmo.attach([target.editorEntity]);
             }
         });
 
@@ -116,19 +105,19 @@ class StimulusSelection {
 
         this.activate = () => {
             this.active = true;
-            scene.add(stimulus);
-            gizmo.attach([stimulus.editorEntity]);
-            stimulusToolbar.hidden = false;
+            scene.add(target);
+            gizmo.attach([target.editorEntity]);
+            targetToolbar.hidden = false;
         };
 
         this.deactivate = () => {
-            stimulusToolbar.hidden = true;
+            targetToolbar.hidden = true;
             gizmo.detach();
-            scene.remove(stimulus);
-            stimulus.destroy();
+            scene.remove(target);
+            target.destroy();
             this.active = false;
         };
     }
 }
 
-export { StimulusSelection };
+export { TargetSelection };

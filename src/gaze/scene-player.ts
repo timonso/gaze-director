@@ -5,6 +5,12 @@ class ScenePlayer {
     _isPlaying: boolean = false;
 
     constructor(scene: Scene, events: Events) {
+        this.setupRendering(scene, events);
+
+        events.on('timeline.setPlaying', (value: boolean) => {
+            scene.app.autoRender = value;
+        });
+
         events.on('gaze.toggleInterface', () => {
             document.body.classList.toggle('hidden');
         });
@@ -23,6 +29,7 @@ class ScenePlayer {
 
         events.on('gaze.playScene', () => {
             this._isPlaying = true;
+            scene.gizmoLayer.enabled = false;
             events.fire('gaze.setInterfaceHidden', true);
             events.fire('grid.setVisible', false);
             events.fire('camera.setBound', false);
@@ -34,11 +41,22 @@ class ScenePlayer {
 
         events.on('gaze.stopScene', () => {
             this._isPlaying = false;
+            scene.gizmoLayer.enabled = true;
             events.fire('gaze.setInterfaceHidden', false);
             events.fire('grid.setVisible', true);
             events.fire('camera.setBound', true);
             events.fire('timeline.setPlaying', false);
         });
+    }
+
+    setupRendering(scene: Scene, events: Events) {
+        events.fire('timeline.setFrameRate', 30);
+        events.fire('timeline.setFrames', 300);
+        scene.camera.entity.camera.requestSceneColorMap(true);
+        scene.camera.entity.camera.requestSceneDepthMap(true);
+        // scene.graphicsDevice.maxPixelRatio = 1;
+        // scene.graphicsDevice.setResolution(1920, 1080);
+        // console.log('resolution set');
     }
 }
 

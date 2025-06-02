@@ -29,6 +29,7 @@ import { SphereSelection } from './tools/sphere-selection';
 import { ToolManager } from './tools/tool-manager';
 import { registerTransformHandlerEvents } from './transform-handler';
 import { EditorUI } from './ui/editor';
+import { TargetSelection } from './gaze/tools/target-selection';
 
 
 declare global {
@@ -241,7 +242,6 @@ const main = async () => {
     toolManager.register('polygonSelection', new PolygonSelection(events, editorUI.toolsContainer.dom, mask));
     toolManager.register('lassoSelection', new LassoSelection(events, editorUI.toolsContainer.dom, mask));
     toolManager.register('sphereSelection', new SphereSelection(events, scene, editorUI.canvasContainer));
-    toolManager.register('stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('boxSelection', new BoxSelection(events, scene, editorUI.canvasContainer));
     toolManager.register('move', new MoveTool(events, scene));
     toolManager.register('rotate', new RotateTool(events, scene));
@@ -263,9 +263,14 @@ const main = async () => {
     initShortcuts(events);
     initFileHandler(scene, events, editorUI.appContainer.dom, remoteStorageDetails);
 
+    // TODO: turn into elements and add to scene in scene.ts
     // gaze tool initialization
     const gazeTracker = new GazeDirector(scene, events, editHistory);
     const scenePlayer = new ScenePlayer(scene, events);
+
+    toolManager.register('stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
+    toolManager.register('targetSelection', new TargetSelection(scene, events, editorUI.canvasContainer));
+
 
     // load async models
     scene.start();

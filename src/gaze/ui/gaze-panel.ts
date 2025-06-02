@@ -1,9 +1,9 @@
 import { Container, Element, Label } from 'pcui';
 
 import { StimuliList } from './stimuli-list';
+import { TargetsList } from './targets-list';
 import { Events } from '../../events';
-import { localize } from '../../ui/localization';
-import addStimulusSvg from '../../ui/svg/new.svg';
+import addElementSvg from '../../ui/svg/new.svg';
 import { Tooltips } from '../../ui/tooltips';
 
 const createSvg = (svgString: string) => {
@@ -30,13 +30,21 @@ class GazePanel extends Container {
             class: 'panel-header'
         });
 
+        const stimuliHeader = new Container({
+            class: 'panel-header'
+        });
+
+        const targetsHeader = new Container({
+            class: 'panel-header'
+        });
+
         const sceneIcon = new Label({
             text: '\uE344',
             class: 'panel-header-icon'
         });
 
         const sceneLabel = new Label({
-            text: 'Gaze Stimuli',
+            text: 'Gaze Direction Elements',
             class: 'panel-header-label'
         });
 
@@ -44,17 +52,38 @@ class GazePanel extends Container {
             class: 'panel-header-button'
         });
 
-        addStimulus.dom.appendChild(createSvg(addStimulusSvg));
+        const addTarget = new Container({
+            class: 'panel-header-button'
+        });
+
+        stimuliHeader.append(new Label({
+            text: 'Stimuli',
+            class: 'panel-header-label'
+        }));
+
+        targetsHeader.append(new Label({
+            text: 'Targets',
+            class: 'panel-header-label'
+        }));
+
+        addStimulus.dom.appendChild(createSvg(addElementSvg));
+        addTarget.dom.appendChild(createSvg(addElementSvg));
 
         sceneHeader.append(sceneIcon);
         sceneHeader.append(sceneLabel);
-        sceneHeader.append(addStimulus);
+        stimuliHeader.append(addStimulus);
+        targetsHeader.append(addTarget);
 
         addStimulus.on('click', async () => {
             await events.fire('tool.stimulusSelection');
         });
 
+        addTarget.on('click', async () => {
+            await events.fire('tool.targetSelection');
+        });
+
         tooltips.register(addStimulus, 'New Stimulus', 'top');
+        tooltips.register(addTarget, 'New Target', 'top');
 
         const stimuliList = new StimuliList(events);
 
@@ -63,8 +92,18 @@ class GazePanel extends Container {
         });
         stimuliListContainer.append(stimuliList);
 
+        const targetsList = new TargetsList(events);
+
+        const targetsListContainer = new Container({
+            class: 'targets-list-container'
+        });
+        targetsListContainer.append(targetsList);
+
         this.append(sceneHeader);
+        this.append(stimuliHeader);
         this.append(stimuliListContainer);
+        this.append(targetsHeader);
+        this.append(targetsListContainer);
         this.append(new Element({
             class: 'panel-header',
             height: 20

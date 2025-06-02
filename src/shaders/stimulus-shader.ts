@@ -1,3 +1,5 @@
+// TODO: remove this shader
+
 const vertexShader = /* glsl*/`
 #include "gsplatCommonVS"
 

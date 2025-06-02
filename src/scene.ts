@@ -8,7 +8,8 @@ import {
     Color,
     Entity,
     Layer,
-    GraphicsDevice
+    GraphicsDevice,
+    SORTMODE_BACK2FRONT
 } from 'playcanvas';
 
 import { AssetLoader } from './asset-loader';
@@ -91,11 +92,7 @@ class Scene {
         this.app.loader.getHandler('texture').imgParser.crossOrigin = 'anonymous';
 
         // this is required to get full res AR mode backbuffer
-        // this.app.graphicsDevice.maxPixelRatio = window.devicePixelRatio;
-        // this.app.graphicsDevice.fullscreen = true;
-        this.app.graphicsDevice.maxPixelRatio = 1;
-        this.app.graphicsDevice.setResolution(1920, 1080);
-        console.log('resolution set');
+        this.app.graphicsDevice.fullscreen = true;
 
         // configure application canvas
         const observer = new ResizeObserver((entries: ResizeObserverEntry[]) => {
@@ -111,7 +108,7 @@ class Scene {
                     } else if (entry.contentBoxSize.length > 0) {
                         // on safari browsers we must calculate pixel size from CSS size ourselves
                         // and hope the browser performs the same calculation.
-                        const pixelRatio = 1;
+                        const pixelRatio = window.devicePixelRatio;
                         this.canvasResize = {
                             width: Math.ceil(entry.contentBoxSize[0].inlineSize * pixelRatio),
                             height: Math.ceil(entry.contentBoxSize[0].blockSize * pixelRatio)
@@ -173,8 +170,17 @@ class Scene {
 
         this.gaze_stimulusLayer = new Layer({
             enabled: true,
-            name: 'Gaze Layer',
-            clearDepthBuffer: false
+            name: 'Gaze Stimulus Layer'
+        });
+
+        this.gaze_targetLayer = new Layer({
+            enabled: true,
+            name: 'Gaze Target Layer',
+            opaqueSortMode: SORTMODE_NONE,
+            transparentSortMode: SORTMODE_BACK2FRONT,
+            clearColorBuffer: false,
+            clearDepthBuffer: false,
+            clearStencilBuffer: false
         });
 
         // overlay layer
@@ -199,6 +205,7 @@ class Scene {
         layers.insert(this.backgroundLayer, idx);
         layers.insert(this.shadowLayer, idx + 1);
         layers.insert(this.debugLayer, idx + 1);
+        layers.insert(this.gaze_targetLayer, idx + 1);
         layers.push(this.overlayLayer);
         layers.push(this.gizmoLayer);
         layers.push(this.gaze_stimulusLayer);
@@ -226,7 +233,7 @@ class Scene {
         this.outline = new Outline();
         this.add(this.outline);
         this.underlay = new Underlay();
-        this.add(this.underlay);
+        // this.add(this.underlay);
     }
 
     start() {

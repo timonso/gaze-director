@@ -9,13 +9,10 @@ import {
     ShaderMaterial,
     Vec3,
     EventHandle,
-    MeshInstance,
     Mesh,
     GraphicsDevice,
-    CULLFACE_BACK,
     DepthState,
-    FUNC_LESSEQUAL,
-    CULLFACE_FRONT
+    FUNC_LESSEQUAL
 } from 'playcanvas';
 
 import { Events } from 'src/events';
@@ -23,23 +20,12 @@ import { Scene } from 'src/scene';
 
 import { Element, ElementType } from '../element';
 import { Serializer } from '../serializer';
-// TODO: create both debug and modulation shaders
 import * as editorShaders from './shaders/stimulus_editor-shader';
-import * as playerShaders from './shaders/stimulus_player-shader';
+import { StimulusRenderer } from './stimulus-renderer';
 
 const bound = new BoundingBox();
 
-const DEBUG_SCALE = 0.01;
-
-function createQuadMesh(graphicsDevice: GraphicsDevice) {
-    const mesh = new Mesh(graphicsDevice);
-    const positions = [-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0];
-    const indices = [0, 1, 2, 2, 1, 3];
-    mesh.setPositions(positions);
-    mesh.setIndices(indices);
-    mesh.update();
-    return mesh;
-}
+const EDITOR_SCALE = 0.01;
 
 function createMaterial(name: string, vertexShader: string, fragmentShader: string) {
     const material = new ShaderMaterial({
@@ -64,11 +50,10 @@ function createMaterial(name: string, vertexShader: string, fragmentShader: stri
 
 class Stimulus extends Element {
     editorEntity: Entity;
-    playerEntity: Entity;
+    visible: boolean = false;
+    active: boolean = false;
     editorMaterial: ShaderMaterial;
     playerMaterial: ShaderMaterial;
-    active: boolean = true;
-    visible: boolean = true;
     name: string = 'stimulus';
     screenPosition: Vec3 = new Vec3(0, 0, 0);
     intensity: number = 1.0;
@@ -76,28 +61,26 @@ class Stimulus extends Element {
     startFrame: number;
     duration: number = 2.0; // [seconds]
     frequency: number = 10.0; // [Hz]
-    _radius: number = 32; // [px]
-    _debugRadius: number = 1.0; // [scene units]
+    _playerRadius: number = 32; // [px]
+    _editorRadius: number = 1.0; // [scene units]
     _updateHandle: EventHandle;
     _enableHandle: EventHandle;
     _materialUpdateHandle: EventHandle;
 
     set radius(radius: number) {
-        this._radius = radius;
+        this._playerRadius = radius;
 
-        const r = (this._debugRadius = radius * DEBUG_SCALE);
+        const r = (this._editorRadius = radius * EDITOR_SCALE);
         this.editorEntity.setLocalScale(r, r, r);
 
         this.updateBound();
     }
 
     get radius() {
-        return this._radius;
+        return this._playerRadius;
     }
 
     constructor(
-        scene: Scene,
-        events: Events,
         position: Vec3 = new Vec3(0, 0, 0),
         radius: number = 32,
         duration: number = 2.0,
@@ -108,126 +91,87 @@ class Stimulus extends Element {
         super(ElementType.gaze_stimulus);
 
         this.editorEntity = new Entity('stimulus_editor');
-        this.playerEntity = new Entity('stimulus_player');
 
         this.editorEntity.addComponent('render', {
             type: 'sphere'
         });
 
-        this.playerEntity.addComponent('render', {
-            type: 'sphere'
-        });
-
         this.editorMaterial = createMaterial('stimulus_editor', editorShaders.vertexShader, editorShaders.fragmentShader);
-        this.playerMaterial = createMaterial('stimulus_player', playerShaders.vertexShader, playerShaders.fragmentShader);
 
         this.duration = duration;
         this.startFrame = startFrame;
+        this.frequency = frequency;
+        this.intensity = intensity;
+
+        // this.renderer = events.invoke('gaze.getStimulusRenderer');
+
+        this._playerRadius = radius;
+        const r = (this._editorRadius = radius * EDITOR_SCALE);
+        this.editorEntity.setPosition(position);
+        this.editorEntity.setLocalScale(r, r, r);
 
         // eslint-disable-next-line prefer-const
+
+        // scene.app.scene.on('postcull', () => {
+        //     console.log(this.playerEntity.render.meshInstances[0].visibleThisFrame);
+        // });
+    }
+
+    add() {
+        this.scene.contentRoot.addChild(this.editorEntity);
+
+        this.editorEntity.render.meshInstances[0].material = this.editorMaterial;
+
+        this.editorMaterial.setParameter('radius', this._editorRadius);
+        this.editorMaterial.update();
+
+        this.editorEntity.render.layers = [this.scene.gaze_targetLayer.id];
+
+        this.updateBound();
+
+        const scene = this.scene;
+        const events = this.scene.events;
+
         let frameRate = 30; // [fps]
         events.fire('timeline.frameRate', frameRate);
         const endFrame = this.startFrame + this.duration * frameRate;
 
-        scene.camera.worldToScreen(position, this.screenPosition);
-        this.screenPosition.y = scene.graphicsDevice.height - this.screenPosition.y;
-        // console.log(this.screenPosition);
-
-        this._radius = radius;
-        this.intensity = intensity;
-        const r = (this._debugRadius = this._radius * DEBUG_SCALE);
-        this.editorEntity.setPosition(position);
-        this.editorEntity.setLocalScale(r, r, r);
-
-        this.name = `stim [ r: ${this.radius} | s: ${this.startFrame} | d: ${this.duration} | i: ${this.intensity} ]`;
-
-        const editorRenderer = this.editorEntity.render;
-        const playerRenderer = this.playerEntity.render;
+        this.name = `S [ r: ${this.radius} | s: ${this.startFrame} | d: ${this.duration} | i: ${this.intensity} ]`;
 
         this._updateHandle = events.on('timeline.time', (time: number) => {
-            playerRenderer.enabled =
-                time >= this.startFrame && time <= endFrame;
+            const scheduled = (time >= this.startFrame) && (time <= endFrame);
+
+            if (!scheduled) {
+                if (this.active) {
+                    this.active = false;
+                    events.fire('gaze.stimulusChanged', null);
+                }
+            } else {
+                if (!this.active) {
+                    this.active = true;
+                    events.fire('gaze.stimulusChanged', this);
+                }
+                // update stimulus projection
+                scene.camera.worldToScreen(this.editorEntity.getPosition(), this.screenPosition);
+
+                // TODO: perform gaze proximity check
+                const suppressed = false;
+                this.visible = this.active && !suppressed;
+            }
         });
 
         this._enableHandle = events.on(
             'timeline.setPlaying',
             (value: boolean) => {
-                playerRenderer.enabled = value && this.active;
-                editorRenderer.enabled = !value && this.active;
+                this.active = false;
+                this.visible = false;
+                this.editorEntity.enabled = !value;
+                scene.forceRender = true;
             }
         );
-
-        const secondsPerFrame = 1 / frameRate;
-        this._materialUpdateHandle = events.on(
-            'timeline.time',
-            (time: number) => {
-                scene.camera.worldToScreen(position, this.screenPosition);
-                this.screenPosition.y = scene.graphicsDevice.height - this.screenPosition.y;
-                this.playerMaterial.setParameter('stimulusScreenPosition', this.screenPosition.toArray() as number[]);
-                this.playerMaterial.setParameter('currentTime', time * secondsPerFrame);
-                this.playerMaterial.update();
-            }
-        );
-
-        // scene.app.scene.on('postcull', () => {
-        //     console.log(this.playerEntity.render.meshInstances[0].visibleThisFrame);
-        // });
-
-        events.on('camera.resize', () => this.updateCanvasResolution(scene));
-    }
-
-    add() {
-        this.playerEntity.render.enabled = false;
-        this.editorEntity.addChild(this.playerEntity);
-        this.scene.contentRoot.addChild(this.editorEntity);
-
-        const quad = createQuadMesh(this.scene.graphicsDevice);
-        this.playerEntity.render.meshInstances = [
-            new MeshInstance(quad, this.playerMaterial)
-        ];
-        this.editorEntity.render.meshInstances[0].material = this.editorMaterial;
-
-        this.playerMaterial.setParameter(
-            'stimulusWorldPosition',
-                    this.playerEntity
-                    .getWorldTransform()
-                    .getTranslation()
-                    .toArray() as number[]
-        );
-        this.playerMaterial.setParameter(
-            'stimulusScreenPosition',
-            this.screenPosition.toArray() as number[]
-        );
-        this.playerMaterial.setParameter('stimulusIntensity', this.intensity);
-        this.playerMaterial.setParameter('stimulusRadius', this.radius);
-        this.playerMaterial.setParameter('frequency', this.frequency); // [Hz]
-        this.playerMaterial.update();
-
-        this.updateCanvasResolution();
-
-        this.editorMaterial.setParameter('radius', this._debugRadius);
-        this.editorMaterial.update();
-
-        this.editorEntity.render.layers = [this.scene.gaze_targetLayer.id];
-        this.playerEntity.render.layers = [this.scene.gaze_stimulusLayer.id];
-
-        this.updateBound();
-    }
-
-    updateCanvasResolution(scene: Scene = this.scene) {
-        const canvasResolution = [
-            scene.graphicsDevice.width,
-            scene.graphicsDevice.height
-        ];
-        this.playerMaterial.setParameter(
-            'canvasResolution',
-            canvasResolution
-        );
-        this.playerMaterial.update();
     }
 
     remove() {
-        this.editorEntity.removeChild(this.playerEntity);
         this.scene.contentRoot.removeChild(this.editorEntity);
         this.scene.boundDirty = true;
         // console.log(`Removed stimulus: ${this.name}`);
