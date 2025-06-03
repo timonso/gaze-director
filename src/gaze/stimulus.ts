@@ -13,9 +13,6 @@ import {
     FUNC_LESSEQUAL
 } from 'playcanvas';
 
-import { Events } from 'src/events';
-import { Scene } from 'src/scene';
-
 import { Element, ElementType } from '../element';
 import { Serializer } from '../serializer';
 import * as editorShaders from './shaders/stimulus_editor-shader';
@@ -50,41 +47,39 @@ class Stimulus extends Element {
     visible: boolean = false;
     active: boolean = false;
     editorMaterial: ShaderMaterial;
-    playerMaterial: ShaderMaterial;
     name: string = 'stimulus';
     worldPosition: Vec3 = new Vec3(0, 0, 0);
     screenPosition: Vec3 = new Vec3(0, 0, 0);
-    intensity: number = 1.0;
-
-    startFrame: number;
-    duration: number = 2.0; // [seconds]
+    intensity: number = 0.095;
+    startFrame: number = 0; // [frames]
+    duration: number = 5.0; // [seconds]
     frequency: number = 10.0; // [Hz]
-    _playerRadius: number = 32; // [px]
+    hardness: number = 0.2; // [0..1]
+
+    _outerRadius: number = 32; // [px]
     _editorRadius: number = 1.0; // [scene units]
     _updateHandle: EventHandle;
     _enableHandle: EventHandle;
     _materialUpdateHandle: EventHandle;
 
     set radius(radius: number) {
-        this._playerRadius = radius;
+        this._outerRadius = radius;
 
         const r = (this._editorRadius = radius * EDITOR_SCALE);
         this.editorEntity.setLocalScale(r, r, r);
-
-        this.updateBound();
     }
-
     get radius() {
-        return this._playerRadius;
+        return this._outerRadius;
     }
 
     constructor(
         position: Vec3 = new Vec3(0, 0, 0),
         radius: number = 32,
-        duration: number = 2.0,
+        duration: number = 5.0,
         startFrame: number = 0,
-        intensity: number = 1.0,
-        frequency: number = 10.0
+        intensity: number = 0.095,
+        frequency: number = 10.0,
+        hardness: number = 0.2
     ) {
         super(ElementType.gaze_stimulus);
 
@@ -100,12 +95,11 @@ class Stimulus extends Element {
         this.startFrame = startFrame;
         this.frequency = frequency;
         this.intensity = intensity;
+        this.hardness = hardness;
+        this.radius = radius;
 
-        this._playerRadius = radius;
-        const r = (this._editorRadius = radius * EDITOR_SCALE);
-
+        this.worldPosition = position;
         this.editorEntity.setPosition(position);
-        this.editorEntity.setLocalScale(r, r, r);
     }
 
     add() {
@@ -116,12 +110,8 @@ class Stimulus extends Element {
         this.worldPosition = this.editorEntity.getPosition();
 
         this.editorEntity.render.meshInstances[0].material = this.editorMaterial;
-
-        this.editorMaterial.setParameter('radius', this._editorRadius);
         this.editorMaterial.update();
-
         this.editorEntity.render.layers = [scene.gaze_editorLayer.id];
-
         this.updateBound();
 
         // eslint-disable-next-line prefer-const
@@ -129,7 +119,16 @@ class Stimulus extends Element {
         events.fire('timeline.frameRate', frameRate);
         const endFrame = this.startFrame + this.duration * frameRate;
 
-        this.name = `S [ r: ${this.radius} | s: ${this.startFrame} | d: ${this.duration} | i: ${this.intensity} ]`;
+        this.name =
+            `S [ ${
+                [`s: ${this.startFrame}`,
+                    `d: ${this.duration}`,
+                    `e: ${endFrame}`,
+                    `r: ${this.radius}`,
+                    `i: ${this.intensity}`,
+                    `h: ${this.hardness}`,
+                    `f: ${this.frequency}`].join(' | ')} ]`;
+
 
         this._updateHandle = events.on('timeline.time', (time: number) => {
             const scheduled = (time >= this.startFrame) && (time <= endFrame);
@@ -137,12 +136,11 @@ class Stimulus extends Element {
             if (!scheduled) {
                 if (this.active) {
                     this.active = false;
-                    events.fire('gaze.stimulusChanged', null);
+                    events.invoke('gaze.requestStimulusUpdate', null);
                 }
             } else {
                 if (!this.active) {
-                    this.active = true;
-                    events.fire('gaze.stimulusChanged', this);
+                    this.active = events.invoke('gaze.requestStimulusUpdate', this);
                 }
                 // update stimulus projection
                 scene.camera.worldToScreen(this.worldPosition, this.screenPosition);

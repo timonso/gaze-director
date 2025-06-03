@@ -186,7 +186,7 @@ void main(void) {
                 }
                 }
             
-            float stimulusIntensity = sin(currentTime * 10.0) * 0.5 + 0.5;
+            float modulationIntensity = sin(currentTime * 10.0) * 0.5 + 0.5;
             vec4 stimulusColor = vec4(1.0, 1.0, 1.0, 1.0);
             float stimFragDist = distance(stimulusScreenPosition.xy, gl_FragCoord.xy);
             // stimFragDist = clamp(stimFragDist, 0.0, 1.0);
@@ -194,7 +194,7 @@ void main(void) {
             // gl_FragColor = vec4(gl_FragColor.xyz * stimFragDist * alpha, alpha);
 
             if (stimFragDist <= 32.0) {
-                gl_FragColor = vec4(stimulusColor.xyz * stimulusIntensity * alpha, alpha);
+                gl_FragColor = vec4(stimulusColor.xyz * modulationIntensity * alpha, alpha);
             } else {
                 gl_FragColor = vec4(color.xyz * alpha, alpha);
              }

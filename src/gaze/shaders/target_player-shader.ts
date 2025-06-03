@@ -27,29 +27,29 @@ const fragmentShader = /* glsl */ `
     const float TAU = 6.2831853;
 
     uniform float currentTime;
-    uniform float stimulusRadius;
-    uniform float stimulusIntensity;
-    uniform float frequency;
-    uniform sampler2D inputBuffer;
+    uniform float outerRadius;
+    uniform float modulationIntensity;
+    uniform float modulationFrequency;
+    uniform sampler2D sceneBuffer;
 
     varying vec3 stimulusScreenPosition;
     varying vec2 vUv0;
 
     void main() {
-        float intensity = sin(currentTime * TAU * frequency) * 0.5 + 0.5;
-        intensity *= stimulusIntensity;
+        float intensity = sin(currentTime * TAU * modulationFrequency) * 0.5 + 0.5;
+        intensity *= modulationIntensity;
         vec3 stimulusColor = vec3(1.0, 1.0, 1.0);
         float stimFragDist = distance(stimulusScreenPosition.xy, gl_FragCoord.xy);
 
-        if (stimFragDist <= stimulusRadius) {
-            float sigma = stimulusRadius / 3.0;
+        if (stimFragDist <= outerRadius) {
+            float sigma = outerRadius / 3.0;
             float alpha = exp(-(stimFragDist * stimFragDist) / (2.0 * sigma * sigma));
             gl_FragColor = vec4(stimulusColor * intensity, alpha);
         } else {
             discard;
         }
 
-        // gl_FragColor = texture2D(inputBuffer, vUv0);
+        // gl_FragColor = texture2D(sceneBuffer, vUv0);
     }
 `;
 

@@ -64,10 +64,11 @@ class StimulusRenderer extends Element {
             'stimulusScreenPosition'
         );
         const currentTime_loc = device.scope.resolve('currentTime');
-        const stimulusRadius_loc = device.scope.resolve('stimulusRadius');
-        const stimulusIntensity_loc = device.scope.resolve('stimulusIntensity');
-        const frequency_loc = device.scope.resolve('frequency');
-        const inputBuffer_loc = device.scope.resolve('inputBuffer');
+        const outerRadius_loc = device.scope.resolve('outerRadius');
+        const halfVariance_loc = device.scope.resolve('halfVariance');
+        const modulationIntensity_loc = device.scope.resolve('modulationIntensity');
+        const modulationFrequency_loc = device.scope.resolve('modulationFrequency');
+        const sceneBuffer_loc = device.scope.resolve('sceneBuffer');
 
         // eslint-disable-next-line prefer-const
         let frameRate = 30; // [fps]
@@ -81,14 +82,31 @@ class StimulusRenderer extends Element {
             this.currentStimulus = null;
         });
 
-        events.on('gaze.stimulusChanged', (stimulus: Stimulus) => {
+        events.function('gaze.requestStimulusUpdate', (stimulus: Stimulus) => {
+            // always accept stimulus deactivations
+            if (!stimulus) {
+                this.currentStimulus = stimulus;
+                return true;
+            }
+
+            // current stimulus is still active
+            if (this.currentStimulus) return false;
+
             this.currentStimulus = stimulus;
 
-            if (!stimulus) return;
+            // adjust for device pixel ratio
+            const nativeRadius = stimulus.radius * this._pixelScale;
 
-            stimulusRadius_loc.setValue(this.currentStimulus.radius * this._pixelScale);
-            stimulusIntensity_loc.setValue(this.currentStimulus.intensity);
-            frequency_loc.setValue(this.currentStimulus.frequency);
+            // precompute constant gaussian subterm 1 / (2 * sigma^2)
+            const sigma = nativeRadius * stimulus.hardness;
+            const halfVariance = 1.0 / (2.0 * sigma ** 2);
+
+            outerRadius_loc.setValue(nativeRadius);
+            halfVariance_loc.setValue(halfVariance);
+            modulationIntensity_loc.setValue(stimulus.intensity);
+            modulationFrequency_loc.setValue(stimulus.frequency);
+
+            return true;
         }
         );
 
@@ -97,14 +115,14 @@ class StimulusRenderer extends Element {
 
         effectiveCamera.on('postRenderLayer', (layer: Layer, _) => {
             if (
+                layer !== scene.gaze_stimulusLayer ||
                 !this.currentStimulus ||
-                !this.currentStimulus.visible ||
-                layer !== scene.gaze_stimulusLayer
+                !this.currentStimulus.visible
             ) {
                 return;
             }
 
-            inputBuffer_loc.setValue(effectiveCamera.renderTarget.colorBuffer);
+            sceneBuffer_loc.setValue(effectiveCamera.renderTarget.colorBuffer);
 
             const screenPosition = this.getCanvasScreenPosition(device);
             screenPostion_loc.setValue(screenPosition);

@@ -76,12 +76,13 @@ class GazeDirector {
         events.on(
             'gaze.addStimulus',
             (
-                position: Vec3 = new Vec3(0, 0, 0),
-                radius: number = 1.0,
-                duration: number = 10,
-                startFrame: number = 0,
-                intensity: number = 1.0,
-                frequency: number = 10.0
+                position: Vec3,
+                radius: number,
+                duration: number,
+                startFrame: number,
+                intensity: number,
+                frequency: number,
+                hardness: number
             ) => {
                 const stimulus = new Stimulus(
                     position,
@@ -89,7 +90,8 @@ class GazeDirector {
                     duration,
                     startFrame,
                     intensity,
-                    frequency
+                    frequency,
+                    hardness
                 );
                 editHistory.add(new AddStimulusOp(scene, stimulus));
             }

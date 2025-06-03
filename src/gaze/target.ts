@@ -120,7 +120,16 @@ class Target extends Element {
         this.editorEntity.setPosition(position);
         this.editorEntity.setLocalScale(r, r, r);
 
-        this.name = `T [ r: ${this.radius} | s: ${this.startFrame} | d: ${this.duration} | o: ${this.opacity} ]`;
+        this.name =
+            `T [ ${
+                [
+                    `s: ${this.startFrame}`,
+                    `d: ${this.duration}`,
+                    `e: ${endFrame}`,
+                    `r: ${this.radius}`,
+                    `o: ${this.opacity}`
+                ].join(' | ')
+            } ]`;
 
         const editorRenderer = this.editorEntity.render;
         const playerRenderer = this.playerEntity.render;

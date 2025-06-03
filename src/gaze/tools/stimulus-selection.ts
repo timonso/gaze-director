@@ -18,7 +18,10 @@ class StimulusSelection {
     constructor(scene: Scene, events: Events, canvasContainer: Container) {
         const stimulus = new Stimulus();
 
-        const gizmo = new TranslateGizmo(scene.camera.entity.camera, scene.gizmoLayer);
+        const gizmo = new TranslateGizmo(
+            scene.camera.entity.camera,
+            scene.gizmoLayer
+        );
 
         gizmo.on('render:update', () => {
             scene.forceRender = true;
@@ -38,19 +41,22 @@ class StimulusSelection {
             e.stopPropagation();
         });
 
-        const addButton = new Button({ text: 'Add', class: 'select-toolbar-button' });
+        const addButton = new Button({
+            text: 'Add',
+            class: 'select-toolbar-button'
+        });
         const radiusSlider = new NumericInput({
             precision: 0,
             value: stimulus.radius,
             placeholder: 'Radius [px]',
-            width: 100,
+            width: 120,
             min: 1.0
         });
         const intensitySlider = new NumericInput({
             precision: 3,
             value: stimulus.intensity,
             placeholder: 'Intensity',
-            width: 100,
+            width: 120,
             min: 0.0,
             max: 1.0
         });
@@ -58,28 +64,47 @@ class StimulusSelection {
             precision: 0,
             value: stimulus.duration,
             placeholder: 'Duration [s]',
-            width: 100,
-            min: 1.0
+            width: 120,
+            min: 1
         });
         const frequencySlider = new NumericInput({
-            precision: 2,
+            precision: 0,
             value: stimulus.frequency,
             placeholder: 'Frequency [Hz]',
-            width: 100,
+            width: 120,
             min: 1
+        });
+        const hardnessSlider = new NumericInput({
+            precision: 3,
+            value: stimulus.hardness,
+            placeholder: 'Hardness',
+            width: 120,
+            min: 0.0,
+            max: 1.0
         });
 
         stimulusToolbar.append(radiusSlider);
         stimulusToolbar.append(durationSlider);
-        stimulusToolbar.append(intensitySlider);
         stimulusToolbar.append(frequencySlider);
+        stimulusToolbar.append(intensitySlider);
+        stimulusToolbar.append(hardnessSlider);
         stimulusToolbar.append(addButton);
 
         canvasContainer.append(stimulusToolbar);
 
         addButton.dom.addEventListener('pointerdown', (e) => {
             const currentFrame = events.invoke('timeline.frame');
-            e.stopPropagation(); events.fire('gaze.addStimulus', stimulus.editorEntity.getPosition(), stimulus._playerRadius, stimulus.duration, currentFrame, stimulus.intensity, stimulus.frequency);
+            e.stopPropagation();
+            events.fire(
+                'gaze.addStimulus',
+                stimulus.editorEntity.getPosition(),
+                stimulus._outerRadius,
+                stimulus.duration,
+                currentFrame,
+                stimulus.intensity,
+                stimulus.frequency,
+                stimulus.hardness
+            );
         });
 
         radiusSlider.on('change', () => {
@@ -94,20 +119,27 @@ class StimulusSelection {
         frequencySlider.on('change', () => {
             stimulus.frequency = frequencySlider.value;
         });
-
-        events.on('camera.focalPointPicked', (details: { splat: Splat, position: Vec3 }) => {
-            if (this.active) {
-                stimulus.editorEntity.setPosition(details.position);
-                gizmo.attach([stimulus.editorEntity]);
-            }
+        hardnessSlider.on('change', () => {
+            stimulus.hardness = hardnessSlider.value;
         });
+
+        events.on(
+            'camera.focalPointPicked',
+            (details: { splat: Splat; position: Vec3 }) => {
+                if (this.active) {
+                    stimulus.editorEntity.setPosition(details.position);
+                    gizmo.attach([stimulus.editorEntity]);
+                }
+            }
+        );
 
         const updateGizmoSize = () => {
             const { camera, canvas } = scene;
             if (camera.ortho) {
                 gizmo.size = 1125 / canvas.clientHeight;
             } else {
-                gizmo.size = 1200 / Math.max(canvas.clientWidth, canvas.clientHeight);
+                gizmo.size =
+                    1200 / Math.max(canvas.clientWidth, canvas.clientHeight);
             }
         };
         updateGizmoSize();
