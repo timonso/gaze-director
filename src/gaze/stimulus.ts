@@ -103,7 +103,7 @@ class Stimulus extends Element {
 
         this._playerRadius = radius;
         const r = (this._editorRadius = radius * EDITOR_SCALE);
-        this.worldPosition = position;
+
         this.editorEntity.setPosition(position);
         this.editorEntity.setLocalScale(r, r, r);
     }
@@ -113,6 +113,7 @@ class Stimulus extends Element {
         const events = this.scene.events;
 
         scene.contentRoot.addChild(this.editorEntity);
+        this.worldPosition = this.editorEntity.getPosition();
 
         this.editorEntity.render.meshInstances[0].material = this.editorMaterial;
 
