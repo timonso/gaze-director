@@ -16,7 +16,7 @@ const fragmentShader = /* glsl */ `
     uniform float halfVariance;
     uniform float modulationIntensity;
     uniform float modulationFrequency;
-    uniform  vec2 stimulusScreenPosition;
+    uniform vec2 stimulusScreenPosition;
     uniform sampler2D sceneBuffer;
     
     const float TAU = 6.2831853;

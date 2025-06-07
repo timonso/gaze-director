@@ -110,6 +110,7 @@ class TargetsList extends Container {
                 const item = new TargetItem(target.name);
                 this.append(item);
                 items.set(target, item);
+                events.fire('gaze.targetsChanged', items.size);
             }
         });
 
@@ -120,6 +121,7 @@ class TargetsList extends Container {
                 if (item) {
                     this.remove(item);
                     items.delete(target);
+                    events.fire('gaze.targetsChanged', items.size);
                 }
             }
         });

@@ -9,7 +9,8 @@ import {
     Entity,
     Layer,
     GraphicsDevice,
-    SORTMODE_BACK2FRONT
+    SORTMODE_BACK2FRONT,
+    SORTMODE_FRONT2BACK
 } from 'playcanvas';
 
 import { AssetLoader } from './asset-loader';
@@ -165,31 +166,9 @@ class Scene {
         this.debugLayer = new Layer({
             enabled: true,
             name: 'Debug Layer',
-            opaqueSortMode: SORTMODE_NONE,
-            transparentSortMode: SORTMODE_NONE
-        });
-
-        this.gaze_editorLayer = new Layer({
-            enabled: true,
-            name: 'Gaze Editor Layer',
             clearDepthBuffer: false,
             opaqueSortMode: SORTMODE_NONE,
             transparentSortMode: SORTMODE_NONE
-        });
-
-        this.gaze_stimulusLayer = new Layer({
-            enabled: true,
-            name: 'Gaze Stimulus Layer'
-        });
-
-        this.gaze_targetLayer = new Layer({
-            enabled: true,
-            name: 'Gaze Target Layer',
-            opaqueSortMode: SORTMODE_NONE,
-            transparentSortMode: SORTMODE_BACK2FRONT,
-            clearColorBuffer: false,
-            clearDepthBuffer: false,
-            clearStencilBuffer: false
         });
 
         // overlay layer
@@ -208,6 +187,28 @@ class Scene {
             transparentSortMode: SORTMODE_NONE
         });
 
+        this.gaze_editorLayer = new Layer({
+            enabled: true,
+            name: 'Gaze Editor Layer',
+            clearDepthBuffer: false,
+            opaqueSortMode: SORTMODE_NONE,
+            transparentSortMode: SORTMODE_NONE
+        });
+
+        this.gaze_stimulusLayer = new Layer({
+            enabled: true,
+            name: 'Gaze Stimulus Layer',
+            clearDepthBuffer: false
+        });
+
+        this.gaze_targetLayer = new Layer({
+            enabled: true,
+            name: 'Gaze Target Layer',
+            clearDepthBuffer: false,
+            opaqueSortMode: SORTMODE_NONE,
+            transparentSortMode: SORTMODE_BACK2FRONT
+        });
+
         const layers = this.app.scene.layers;
         const worldLayer = layers.getLayerByName('World');
         const idx = layers.getOpaqueIndex(worldLayer);
@@ -215,10 +216,10 @@ class Scene {
         layers.insert(this.shadowLayer, idx + 1);
         layers.insert(this.debugLayer, idx + 1);
         layers.insert(this.gaze_targetLayer, idx + 1);
+        layers.push(this.gaze_stimulusLayer);
         layers.push(this.gaze_editorLayer);
         layers.push(this.overlayLayer);
         layers.push(this.gizmoLayer);
-        layers.push(this.gaze_stimulusLayer);
 
         this.dataProcessor = new DataProcessor(this.app.graphicsDevice);
         this.assetLoader = new AssetLoader(this.app, events, this.app.graphicsDevice.maxAnisotropy);

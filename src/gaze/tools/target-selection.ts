@@ -1,7 +1,7 @@
 // adapted from '/src/tools/sphere-selection.ts'
 
-import { Button, Container, NumericInput } from 'pcui';
-import { TranslateGizmo, Vec3 } from 'playcanvas';
+import { BooleanInput, Button, ColorPicker, Container, Label, NumericInput, VectorInput } from 'pcui';
+import { Color, TranslateGizmo, Vec3 } from 'playcanvas';
 
 import { Events } from 'src/events';
 
@@ -14,10 +14,10 @@ class TargetSelection {
     deactivate: () => void;
 
     active = false;
+    attachStimulus = false;
 
     constructor(scene: Scene, events: Events, canvasContainer: Container) {
         const target = new Target(scene, events);
-
         const gizmo = new TranslateGizmo(scene.camera.entity.camera, scene.gizmoLayer);
 
         gizmo.on('render:update', () => {
@@ -42,7 +42,7 @@ class TargetSelection {
         const radiusSlider = new NumericInput({
             precision: 0,
             value: target.radius,
-            placeholder: 'Radius [px]',
+            placeholder: 'Radius',
             width: 100,
             min: 1.0
         });
@@ -61,17 +61,51 @@ class TargetSelection {
             width: 100,
             min: 1.0
         });
+        const specularSlider = new NumericInput({
+            precision: 2,
+            value: target.specularFactor,
+            placeholder: 'Specularity',
+            width: 100,
+            min: 0.0,
+            max: 1000.0
+        });
+        const lightPositionPicker = new VectorInput({
+            precision: 0,
+            dimensions: 3,
+            value: target.lightPosition.toArray(),
+            width: 120
+        });
+        const colorPicker = new ColorPicker({
+            class: 'color-picker',
+            value: target.color.toArray()
+        });
+        const addStimulusToggle = new BooleanInput({
+            class: 'control-element',
+            value: this.attachStimulus
+        });
 
         targetToolbar.append(radiusSlider);
         targetToolbar.append(durationSlider);
         targetToolbar.append(opacitySlider);
+        targetToolbar.append(specularSlider);
+        targetToolbar.append(new Label({ text: 'Light Position:', class: 'select-toolbar-label' }));
+        targetToolbar.append(lightPositionPicker);
+        targetToolbar.append(new Label({ text: 'Tint:', class: 'select-toolbar-label' }));
+        targetToolbar.append(colorPicker);
+        targetToolbar.append(new Label({ text: '+ Stimulus:', class: 'select-toolbar-label' }));
+        targetToolbar.append(addStimulusToggle);
         targetToolbar.append(addButton);
 
         canvasContainer.append(targetToolbar);
 
         addButton.dom.addEventListener('pointerdown', (e) => {
             const currentFrame = events.invoke('timeline.frame');
-            e.stopPropagation(); events.fire('gaze.addTarget', target.editorEntity.getPosition(), target._radius, target.duration, currentFrame, target.opacity);
+            e.stopPropagation();
+            events.fire('gaze.addTarget', target.editorEntity.getPosition(), target._radius, target.duration, currentFrame, target.opacity);
+
+            if (this.attachStimulus) {
+                events.fire('gaze.addStimulus', target.editorEntity.getPosition(), target._radius, target.duration, currentFrame);
+            }
         });
 
         radiusSlider.on('change', () => {
@@ -82,6 +116,18 @@ class TargetSelection {
         });
         opacitySlider.on('change', () => {
             target.opacity = opacitySlider.value;
+        });
+        colorPicker.on('change', () => {
+            target.color = new Color(colorPicker.value[0], colorPicker.value[1], colorPicker.value[2], 1.0);
+        });
+        addStimulusToggle.on('change', () => {
+            this.attachStimulus = addStimulusToggle.value;
+        });
+        specularSlider.on('change', () => {
+            target.specularFactor = specularSlider.value;
+        });
+        lightPositionPicker.on('change', () => {
+            target.lightPosition = new Vec3(...lightPositionPicker.value);
         });
 
         events.on('camera.focalPointPicked', (details: { splat: Splat, position: Vec3 }) => {
@@ -108,6 +154,7 @@ class TargetSelection {
             scene.add(target);
             gizmo.attach([target.editorEntity]);
             targetToolbar.hidden = false;
+            events.fire('grid.visible', false);
         };
 
         this.deactivate = () => {

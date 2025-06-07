@@ -56,15 +56,17 @@ class GazePanel extends Container {
             class: 'panel-header-button'
         });
 
-        stimuliHeader.append(new Label({
-            text: 'Stimuli',
+        const stimuliLabel = new Label({
+            text: 'Stimuli: 0',
             class: 'panel-header-label'
-        }));
+        });
+        stimuliHeader.append(stimuliLabel);
 
-        targetsHeader.append(new Label({
-            text: 'Targets',
+        const targetsLabel = new Label({
+            text: 'Targets: 0',
             class: 'panel-header-label'
-        }));
+        });
+        targetsHeader.append(targetsLabel);
 
         addStimulus.dom.appendChild(createSvg(addElementSvg));
         addTarget.dom.appendChild(createSvg(addElementSvg));
@@ -98,6 +100,15 @@ class GazePanel extends Container {
             class: 'targets-list-container'
         });
         targetsListContainer.append(targetsList);
+
+        events.on('gaze.stimuliChanged', (count: number) => {
+            stimuliLabel.text = `Stimuli: ${count}`;
+        });
+
+        events.on('gaze.targetsChanged', (count: number) => {
+            targetsLabel.text = `Targets: ${count}`;
+            events.fire('gaze.toggleTargetRenderer', count > 0);
+        });
 
         this.append(sceneHeader);
         this.append(stimuliHeader);

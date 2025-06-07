@@ -89,6 +89,7 @@ class Camera extends Element {
         // NOTE: this call is needed for refraction effect to work correctly, but
         // it slows rendering and should only be made when required.
         this.entity.camera.requestSceneColorMap(true);
+        this.entity.camera.requestSceneDepthMap(true);
     }
 
     // ortho

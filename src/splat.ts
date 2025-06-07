@@ -26,7 +26,6 @@ import { Element, ElementType } from './element';
 import { Scene } from './scene';
 import { Serializer } from './serializer';
 import { vertexShader, fragmentShader, gsplatCenter } from './shaders/splat-shader';
-// import { vertexShader, fragmentShader, gsplatCenter } from './shaders/stimulus-shader';
 import { State } from './splat-state';
 import { Transform } from './transform';
 import { TransformPalette } from './transform-palette';
@@ -175,24 +174,11 @@ class Splat extends Element {
             material.setDefine('SH_BANDS', `${Math.min(bands, (instance.splat as GSplat).shBands)}`);
             material.setParameter('splatState', this.stateTexture);
             material.setParameter('splatTransform', this.transformTexture);
+            // material.depthWrite = true;
+            // material.depthTest = false;
             material.update();
             this.scene.forceRender = true;
         };
-
-        // const stimulusWorldPosition = new Vec3(1.0, 2.0, 2.0);
-        // let currentTime = 0;
-        // splatResource.app.on('update', (elapsedTime) => {
-        //     currentTime += elapsedTime;
-        //     // console.log(currentTime);
-        //     const { material } = instance;
-        //     material?.setParameter('currentTime', currentTime);
-        //     material?.setParameter('stimulusWorldPosition', stimulusWorldPosition.toArray() as number[]);
-        //     if (splatResource.app) {
-        //         const canvasResolution = [splatResource.app.graphicsDevice.width, splatResource.app.graphicsDevice.height];
-        //         material?.setParameter('canvasResolution', canvasResolution);
-        //     }
-        //     material.update();
-        // });
 
         this.selectionBoundStorage = new BoundingBox();
         this.localBoundStorage = instance.splat.aabb;

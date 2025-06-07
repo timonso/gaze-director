@@ -8,6 +8,7 @@ import { startGazeTracking, stopGazeTracking } from './gaze-tracker';
 import { Stimulus } from './stimulus';
 import { StimulusRenderer } from './stimulus-renderer';
 import { Target } from './target';
+import { TargetRenderer } from './target-renderer';
 
 class AddStimulusOp {
     name: 'addStimulus';
@@ -55,24 +56,13 @@ class AddTargetOp {
     }
 }
 
-// TODO: remove if using built-in sphere mesh
-function loadTargetMesh(scene: Scene) {
-    const asset = new Asset('targetMesh', 'container', {
-        url: 'assets/meshes/sphere.glb'
-    });
-
-    asset.once('load', (containerAsset) => {
-        const modelEntity = containerAsset.resource.instantiateRenderEntity();
-        modelEntity.setPosition(0, 0, 0);
-        scene.app.root.addChild(modelEntity);
-    });
-}
-
 class GazeDirector {
     stimulusRenderer: StimulusRenderer;
+    targetRenderer: TargetRenderer;
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
+        this.targetRenderer = new TargetRenderer(scene, events);
         events.on(
             'gaze.addStimulus',
             (
@@ -110,10 +100,6 @@ class GazeDirector {
                 editHistory.add(new AddTargetOp(scene, target));
             }
         );
-
-        events.function('gaze.getStimulusRenderer', () => {
-            return this.stimulusRenderer;
-        });
 
         events.on('gaze.startTracking', () => {
             startGazeTracking();

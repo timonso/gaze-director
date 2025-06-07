@@ -1,6 +1,5 @@
 import {
     createShaderFromCode,
-    Entity,
     GraphicsDevice,
     Layer,
     PIXELFORMAT_R8_G8_B8_A8,
@@ -24,7 +23,6 @@ class StimulusRenderer extends Element {
     stimuliLayer: QuadRender;
     currentStimulus: Stimulus = null;
     _currentTime: number = 0;
-    _colorBuffer: Texture;
     _overlayColorBuffer: Texture;
     _overlayRenderTarget: any;
     _pixelScale: number = 1;
@@ -57,8 +55,6 @@ class StimulusRenderer extends Element {
             colorBuffer: this._overlayColorBuffer,
             depth: false
         });
-
-        events.on('camera.resize', () => this.resizeRenderTarget(device));
 
         const screenPostion_loc = device.scope.resolve(
             'stimulusScreenPosition'
@@ -105,6 +101,7 @@ class StimulusRenderer extends Element {
             halfVariance_loc.setValue(halfVariance);
             modulationIntensity_loc.setValue(stimulus.intensity);
             modulationFrequency_loc.setValue(stimulus.frequency);
+            // sceneBuffer_loc.setValue(effectiveCamera.renderTarget.colorBuffer);
 
             return true;
         }
@@ -122,8 +119,6 @@ class StimulusRenderer extends Element {
                 return;
             }
 
-            sceneBuffer_loc.setValue(effectiveCamera.renderTarget.colorBuffer);
-
             const screenPosition = this.getCanvasScreenPosition(device);
             screenPostion_loc.setValue(screenPosition);
             currentTime_loc.setValue(this._currentTime * secondsPerFrame);
@@ -138,6 +133,11 @@ class StimulusRenderer extends Element {
                 effectiveCamera.renderTarget,
                 true
             );
+        });
+
+        events.on('camera.resize', () => {
+            this.resizeRenderTarget(device);
+            sceneBuffer_loc.setValue(effectiveCamera.renderTarget.colorBuffer);
         });
 
         this.resizeRenderTarget(device);
@@ -170,8 +170,6 @@ class StimulusRenderer extends Element {
             colorBuffer: this._overlayColorBuffer,
             depth: false
         });
-
-        // console.log('overlay resized');
     }
 }
 

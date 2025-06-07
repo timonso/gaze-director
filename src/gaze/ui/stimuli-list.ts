@@ -110,6 +110,7 @@ class StimuliList extends Container {
                 const item = new StimulusItem(stimulus.name);
                 this.append(item);
                 items.set(stimulus, item);
+                events.fire('gaze.stimuliChanged', items.size);
             }
         });
 
@@ -120,6 +121,7 @@ class StimuliList extends Container {
                 if (item) {
                     this.remove(item);
                     items.delete(stimulus);
+                    events.fire('gaze.stimuliChanged', items.size);
                 }
             }
         });
