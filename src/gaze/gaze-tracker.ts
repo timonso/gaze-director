@@ -1,5 +1,9 @@
 // @ts-ignore
-// eslint-disable-next-line import/no-unresolved
+
+import { Events } from 'src/events';
+import { Scene } from 'src/scene';
+
+// @ts-ignore
 import webgazer from '../webgazer/index.mjs';
 
 declare global {
@@ -13,73 +17,123 @@ type GazeRecord = {
   x: number; y: number; timestamp: number
 }
 
+type SceneRecord = {
+    sceneId: string;
+    participantId: string;
+    modulated: boolean;
+}
+
 const REGRESSION_TYPE = 'threadedRidge';
 const SAMPLING_RATE = 20; // [Hz]
 
-const currentRecordedData: GazeRecord[] = [];
-const gazeTracker = window.webgazer = webgazer;
+class GazeTracker {
+    gazeTracker: typeof webgazer;
+    currentRecordedData: GazeRecord[] = [];
+    _recording: boolean = false;
+    _recorderHandle: any = null;
 
-let recorderHandle: any = null;
+    constructor(scene: Scene, events: Events) {
+        events.on('gaze.startTracking', (showPoints = false) => {
+            this.startGazeTracking(showPoints, events);
+        });
 
-async function startGazeTracking() {
-    gazeTracker
-    .setRegression(REGRESSION_TYPE)
-    .setTracker('TFFacemesh');
+        events.on('gaze.stopTracking', () => {
+            this.stopGazeTracking();
+        });
 
-    window.saveDataAcrossSessions = false;
-    gazeTracker.showVideoPreview(false).showPredictionPoints(true);
-    // gazeTracker.setGazeListener((data: any, elapsedTime: number) => {
-    //     if (data == null) {
-    //         return;
-    //     }
-    //     const x = data.x;
-    //     const y = data.y;
-    //     currentRecordedData.push({ x, y, timestamp: elapsedTime });
-    //     // console.log(`Gaze coordinates: (${x}, ${y})`);
-    // });
+        events.on('gaze.saveRecording', (sceneData?: SceneRecord) => {
+            this.saveGazeRecording(sceneData);
+        });
 
-    await gazeTracker.begin();
+        events.function('gaze.getTrackingData', () => {
+            return this.currentRecordedData;
+        });
 
-    let currentTime = 0;
-    recorderHandle = setInterval(async () => {
-        const prediction = await gazeTracker.getCurrentPrediction();
-        if (prediction) {
-            currentRecordedData.push({ x: prediction.x, y: prediction.y, timestamp: currentTime });
-            // console.log(prediction);
+        // TODO: call at the end of scene sequence
+        events.on('gaze.resetCalibration', () => {
+            this.resetCalibration();
+        });
+
+        events.on('timeline.frame', async (frame: number) => {
+            if (this._recording) {
+                const prediction = await this.gazeTracker.getCurrentPrediction();
+                if (prediction) {
+                    this.currentRecordedData.push({ x: prediction.x, y: prediction.y, timestamp: frame });
+                }
+            }
+        });
+
+        this.gazeTracker = window.webgazer = webgazer;
+    }
+
+    async startGazeTracking(showPoints = false, events: Events) {
+        this.currentRecordedData.length = 0;
+
+        this.gazeTracker =
+        this.gazeTracker
+        .setRegression(REGRESSION_TYPE)
+        .applyKalmanFilter(true)
+        .setTracker('TFFacemesh')
+        .showVideoPreview(false)
+        .showPredictionPoints(showPoints)
+        .saveDataAcrossSessions(true);
+
+        // wait for the tracker to finish initialization
+        await this.gazeTracker.begin();
+        this._recording = true;
+        console.log('Gaze tracker ready.');
+        // TODO: check for this in the scene sequencer later
+        events.fire('gaze.trackerReady');
+
+        setTimeout(() => {
+            const gazeDot = document.getElementById('webgazerGazeDot');
+            if (gazeDot && gazeDot.parentNode) {
+                // avoid interference with calibration dots
+                gazeDot.style.pointerEvents = 'none';
+                // reduce DOM update frequency for enhanced performance
+                if (!showPoints) gazeDot.parentNode.removeChild(gazeDot);
+            }
+        }, 1000);
+    }
+
+    async getCurrentGazePosition() : Promise<{ currentX: number; currentY: number; }> {
+        const prediction = await this.gazeTracker.getCurrentPrediction();
+        return { currentX: prediction.x, currentY: prediction.y };
+    }
+
+    saveGazeRecording(sceneData: SceneRecord | null = null) {
+        const header = 'x,y,timestamp\n';
+        const rows = this.currentRecordedData.map(d => `${d.x},${d.y},${d.timestamp}`).join('\n');
+        const csvContent = header + rows;
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        if (sceneData) {
+            a.download = `gr_$s{sceneData.sceneId}_p${sceneData.participantId}_m${sceneData.modulated ? '1' : '0'}.csv`;
+        } else {
+            a.download = `gr_${Date.now()}.csv`;
         }
-        currentTime++;
-    }, 1000 / SAMPLING_RATE);
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    stopGazeTracking(saveRecording = false) {
+        this._recording = false;
+        clearInterval(this._recorderHandle);
+        this.gazeTracker.end(REGRESSION_TYPE);
+        this.gazeTracker.showVideoPreview(false).showPredictionPoints(false);
+        if (saveRecording) this.saveGazeRecording();
+    }
+
+    resetCalibration() {
+        this.gazeTracker.clearData();
+    }
 }
 
-
-async function getCurrentGazePosition() : Promise<{ currentX: number; currentY: number; }> {
-    const prediction = await gazeTracker.getCurrentPrediction();
-    return { currentX: prediction.x, currentY: prediction.y };
-}
-
-function saveGazeRecording() {
-    const header = 'x,y,timestamp\n';
-    const rows = currentRecordedData.map(d => `${d.x},${d.y},${d.timestamp}`).join('\n');
-    const csvContent = header + rows;
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `gaze-data-${Date.now()}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function stopGazeTracking() {
-    clearInterval(recorderHandle);
-    gazeTracker.end(REGRESSION_TYPE);
-    gazeTracker.showVideoPreview(false).showPredictionPoints(false);
-    saveGazeRecording();
-    currentRecordedData.length = 0;
-    gazeTracker.clearData();
-}
-
-export { startGazeTracking, saveGazeRecording, stopGazeTracking, getCurrentGazePosition };
+export { GazeRecord, GazeTracker };

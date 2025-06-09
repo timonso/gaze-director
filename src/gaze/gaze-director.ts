@@ -1,14 +1,15 @@
-import { Asset, Vec3 } from 'playcanvas';
+import { Asset, Color, Vec3 } from 'playcanvas';
 
 import { EditHistory } from 'src/edit-history';
 import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
-import { startGazeTracking, stopGazeTracking } from './gaze-tracker';
+import { GazeTracker } from './gaze-tracker';
 import { Stimulus } from './stimulus';
 import { StimulusRenderer } from './stimulus-renderer';
 import { Target } from './target';
 import { TargetRenderer } from './target-renderer';
+import { CalibrationScreen } from './ui/calibration-screen';
 
 class AddStimulusOp {
     name: 'addStimulus';
@@ -59,10 +60,15 @@ class AddTargetOp {
 class GazeDirector {
     stimulusRenderer: StimulusRenderer;
     targetRenderer: TargetRenderer;
+    calibrationScreen: CalibrationScreen;
+    gazeTracker: GazeTracker;
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
         this.targetRenderer = new TargetRenderer(scene, events);
+        this.calibrationScreen = new CalibrationScreen(scene, events);
+        this.gazeTracker = new GazeTracker(scene, events);
+
         events.on(
             'gaze.addStimulus',
             (
@@ -94,20 +100,15 @@ class GazeDirector {
                 radius: number = 1.0,
                 duration: number = 10,
                 startFrame: number = 0,
-                opacity: number = 1.0
+                opacity: number = 1.0,
+                lightPosition: Vec3 = new Vec3(0, 0, 0),
+                specularFactor: number = 10.0,
+                color: Color = new Color(1, 1, 1, 1)
             ) => {
-                const target = new Target(scene, events, position, radius, duration, startFrame, opacity);
+                const target = new Target(scene, events, position, radius, duration, startFrame, opacity, lightPosition, specularFactor, color);
                 editHistory.add(new AddTargetOp(scene, target));
             }
         );
-
-        events.on('gaze.startTracking', () => {
-            startGazeTracking();
-        });
-
-        events.on('gaze.stopTracking', () => {
-            stopGazeTracking();
-        });
     }
 }
 

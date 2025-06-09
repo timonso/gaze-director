@@ -258,6 +258,10 @@ class Menu extends Container {
             icon: 'E131',
             onSelect: async () => await events.fire('gaze.startTracking')
         }, {
+            text: 'Start Tracking (Debug)',
+            icon: 'E131',
+            onSelect: async () => await events.fire('gaze.startTracking', true)
+        }, {
             text: 'Stop Tracking',
             icon: 'E135',
             onSelect: async () => await events.fire('gaze.stopTracking')
@@ -267,6 +271,24 @@ class Menu extends Container {
         }, {
             text: 'Add Target',
             onSelect: async () => await events.fire('tool.targetSelection')
+        }, {
+            text: 'Toggle Blackout Screen',
+            onSelect: async () => await events.fire('gaze.toggleBlackoutScreen')
+        }, {
+            text: 'Toggle Calibration Screen',
+            onSelect: async () => await events.fire('gaze.toggleCalibrationScreen')
+        }, {
+            text: 'Start Calibration',
+            onSelect: async () => await events.fire('gaze.startCalibration')
+        }, {
+            text: 'Stop Calibration',
+            onSelect: async () => await events.fire('gaze.stopCalibration')
+        }, {
+            text: 'Reset Calibration',
+            onSelect: async () => await events.fire('gaze.resetCalibration')
+        }, {
+            text: 'Save Tracking Data',
+            onSelect: async () => await events.fire('gaze.saveRecording')
         }]);
 
         const helpMenuPanel = new MenuPanel([{

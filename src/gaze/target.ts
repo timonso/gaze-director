@@ -113,7 +113,10 @@ class Target extends Element {
         radius: number = 32,
         duration: number = 5.0,
         startFrame: number = 0,
-        opacity: number = 0.2
+        opacity: number = 0.2,
+        lightPosition: Vec3 = new Vec3(0, 10, 10),
+        specularFactor: number = 10.0,
+        color: Color = new Color(1, 1, 1, 1)
     ) {
         super(ElementType.gaze_target);
 
@@ -128,6 +131,9 @@ class Target extends Element {
         this.opacity = opacity;
         this.duration = duration;
         this.startFrame = startFrame;
+        this.lightPosition = lightPosition;
+        this.specularFactor = specularFactor;
+        this.color = color;
 
         // eslint-disable-next-line prefer-const
         let frameRate = 30; // [fps]
@@ -164,7 +170,7 @@ class Target extends Element {
             'timeline.setPlaying',
             (value: boolean) => {
                 playerRenderer.enabled = !value;
-                this.scene.forceRender = true;
+                if (this.scene) this.scene.forceRender = true;
             }
         );
 

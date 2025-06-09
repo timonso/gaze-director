@@ -410,7 +410,7 @@ const clickListener = async function (event) {
         await setGlobalData();
 
         // // Debug line
-        // console.log('Model size: ' + JSON.stringify(await localforage.getItem(localstorageDataLabel)).length / 1000000 + 'MB');
+        console.log('Model size: ' + JSON.stringify(await localforage.getItem(localstorageDataLabel)).length / 1000000 + 'MB');
     }
 };
 

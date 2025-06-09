@@ -92,8 +92,8 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['I', 'i'], { event: 'select.invert', ctrl: true });
     shortcuts.register(['H', 'h'], { event: 'select.hide' });
     shortcuts.register(['U', 'u'], { event: 'select.unhide' });
-    shortcuts.register(['['], { event: 'tool.brushSelection.smaller' });
-    shortcuts.register([']'], { event: 'tool.brushSelection.bigger' });
+    shortcuts.register(['<'], { event: 'tool.brushSelection.smaller' });
+    shortcuts.register(['>'], { event: 'tool.brushSelection.bigger' });
     shortcuts.register(['Z', 'z'], { event: 'edit.undo', ctrl: true, capture: true });
     shortcuts.register(['Z', 'z'], { event: 'edit.redo', ctrl: true, shift: true, capture: true });
     shortcuts.register(['M', 'm'], { event: 'camera.toggleMode' });
@@ -101,6 +101,12 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['O', 'o'], { event: 'camera.toggleOverlay' });
     shortcuts.register([' '], { event: 'gaze.toggleScene' });
     shortcuts.register(['I', 'i'], { event: 'gaze.toggleInterface' });
+    shortcuts.register(['+', '='], { event: 'gaze.toggleCalibrationScreen' });
+    shortcuts.register(['_', '-'], { event: 'gaze.toggleBlackoutScreen' });
+    shortcuts.register(['{'], { event: 'gaze.startCalibration', shift: true });
+    shortcuts.register(['}'], { event: 'gaze.stopCalibration', shift: true });
+    shortcuts.register(['['], { event: 'gaze.startTracking' });
+    shortcuts.register([']'], { event: 'gaze.stopTracking' });
 
     return shortcuts;
 };

@@ -1,6 +1,14 @@
 // adapted from '/src/tools/sphere-selection.ts'
 
-import { BooleanInput, Button, ColorPicker, Container, Label, NumericInput, VectorInput } from 'pcui';
+import {
+    BooleanInput,
+    Button,
+    ColorPicker,
+    Container,
+    Label,
+    NumericInput,
+    VectorInput
+} from 'pcui';
 import { Color, TranslateGizmo, Vec3 } from 'playcanvas';
 
 import { Events } from 'src/events';
@@ -18,7 +26,10 @@ class TargetSelection {
 
     constructor(scene: Scene, events: Events, canvasContainer: Container) {
         const target = new Target(scene, events);
-        const gizmo = new TranslateGizmo(scene.camera.entity.camera, scene.gizmoLayer);
+        const gizmo = new TranslateGizmo(
+            scene.camera.entity.camera,
+            scene.gizmoLayer
+        );
 
         gizmo.on('render:update', () => {
             scene.forceRender = true;
@@ -38,7 +49,10 @@ class TargetSelection {
             e.stopPropagation();
         });
 
-        const addButton = new Button({ text: 'Add', class: 'select-toolbar-button' });
+        const addButton = new Button({
+            text: 'Add',
+            class: 'select-toolbar-button'
+        });
         const radiusSlider = new NumericInput({
             precision: 0,
             value: target.radius,
@@ -88,11 +102,20 @@ class TargetSelection {
         targetToolbar.append(durationSlider);
         targetToolbar.append(opacitySlider);
         targetToolbar.append(specularSlider);
-        targetToolbar.append(new Label({ text: 'Light Position:', class: 'select-toolbar-label' }));
+        targetToolbar.append(
+            new Label({
+                text: 'Light Position:',
+                class: 'select-toolbar-label'
+            })
+        );
         targetToolbar.append(lightPositionPicker);
-        targetToolbar.append(new Label({ text: 'Tint:', class: 'select-toolbar-label' }));
+        targetToolbar.append(
+            new Label({ text: 'Tint:', class: 'select-toolbar-label' })
+        );
         targetToolbar.append(colorPicker);
-        targetToolbar.append(new Label({ text: '+ Stimulus:', class: 'select-toolbar-label' }));
+        targetToolbar.append(
+            new Label({ text: '+ Stimulus:', class: 'select-toolbar-label' })
+        );
         targetToolbar.append(addStimulusToggle);
         targetToolbar.append(addButton);
 
@@ -101,10 +124,26 @@ class TargetSelection {
         addButton.dom.addEventListener('pointerdown', (e) => {
             const currentFrame = events.invoke('timeline.frame');
             e.stopPropagation();
-            events.fire('gaze.addTarget', target.editorEntity.getPosition(), target._radius, target.duration, currentFrame, target.opacity);
+            events.fire(
+                'gaze.addTarget',
+                target.editorEntity.getPosition(),
+                target._radius,
+                target.duration,
+                currentFrame,
+                target.opacity,
+                target.lightPosition,
+                target.specularFactor,
+                target.color
+            );
 
             if (this.attachStimulus) {
-                events.fire('gaze.addStimulus', target.editorEntity.getPosition(), target._radius, target.duration, currentFrame);
+                events.fire(
+                    'gaze.addStimulus',
+                    target.editorEntity.getPosition(),
+                    target._radius,
+                    target.duration,
+                    currentFrame
+                );
             }
         });
 
@@ -118,7 +157,12 @@ class TargetSelection {
             target.opacity = opacitySlider.value;
         });
         colorPicker.on('change', () => {
-            target.color = new Color(colorPicker.value[0], colorPicker.value[1], colorPicker.value[2], 1.0);
+            target.color = new Color(
+                colorPicker.value[0],
+                colorPicker.value[1],
+                colorPicker.value[2],
+                1.0
+            );
         });
         addStimulusToggle.on('change', () => {
             this.attachStimulus = addStimulusToggle.value;
@@ -130,19 +174,23 @@ class TargetSelection {
             target.lightPosition = new Vec3(...lightPositionPicker.value);
         });
 
-        events.on('camera.focalPointPicked', (details: { splat: Splat, position: Vec3 }) => {
-            if (this.active) {
-                target.editorEntity.setPosition(details.position);
-                gizmo.attach([target.editorEntity]);
+        events.on(
+            'camera.focalPointPicked',
+            (details: { splat: Splat; position: Vec3 }) => {
+                if (this.active) {
+                    target.editorEntity.setPosition(details.position);
+                    gizmo.attach([target.editorEntity]);
+                }
             }
-        });
+        );
 
         const updateGizmoSize = () => {
             const { camera, canvas } = scene;
             if (camera.ortho) {
                 gizmo.size = 1125 / canvas.clientHeight;
             } else {
-                gizmo.size = 1200 / Math.max(canvas.clientWidth, canvas.clientHeight);
+                gizmo.size =
+                    1200 / Math.max(canvas.clientWidth, canvas.clientHeight);
             }
         };
         updateGizmoSize();

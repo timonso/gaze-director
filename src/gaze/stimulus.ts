@@ -10,12 +10,14 @@ import {
     Vec3,
     EventHandle,
     DepthState,
-    FUNC_LESSEQUAL
+    FUNC_LESSEQUAL,
+    Vec2
 } from 'playcanvas';
 
 import { Element, ElementType } from '../element';
 import { Serializer } from '../serializer';
 import * as editorShaders from './shaders/stimulus_editor-shader';
+import { GazeRecord } from './gaze-tracker';
 
 const bound = new BoundingBox();
 
@@ -61,6 +63,8 @@ class Stimulus extends Element {
     _updateHandle: EventHandle;
     _enableHandle: EventHandle;
     _materialUpdateHandle: EventHandle;
+    _gazeTrackingData: GazeRecord[] = [];
+    _trackingHandle: EventHandle;
 
     set radius(radius: number) {
         this._outerRadius = radius;
@@ -106,6 +110,8 @@ class Stimulus extends Element {
         const scene = this.scene;
         const events = this.scene.events;
 
+        this._gazeTrackingData = events.invoke('gaze.getTrackingData') || [];
+
         scene.contentRoot.addChild(this.editorEntity);
         this.worldPosition = this.editorEntity.getPosition();
 
@@ -145,13 +151,18 @@ class Stimulus extends Element {
                 // update stimulus projection
                 scene.camera.worldToScreen(this.worldPosition, this.screenPosition);
 
+                // only render if the stimulus is covered by the camera frustum
                 const culled = !scene.camera.entity.camera.frustum.containsPoint(this.worldPosition);
 
-                // TODO: perform gaze proximity check
-                const suppressed = false;
+                // perform gaze proximity check
+                const suppressed = this.suppressStimulus();
                 this.visible = this.active && !culled && !suppressed;
             }
         });
+
+        // this._trackingHandle = events.on('gaze.startTracking', (_) => {
+        //     this._gazeTrackingData = events.invoke('gaze.getTrackingData') || [];
+        // });
 
         this._enableHandle = events.on(
             'timeline.setPlaying',
@@ -163,18 +174,38 @@ class Stimulus extends Element {
         );
     }
 
+    suppressStimulus(toleranceAngle: number = 10, toleranceRadius: number = 64): boolean {
+        if (this._gazeTrackingData.length > 1) {
+            const len = this._gazeTrackingData.length;
+            const stimulusPosition = new Vec2(this.screenPosition.x, this.screenPosition.y);
+
+            const fixationRecord = this._gazeTrackingData[len - 2];
+            const fixationPosition = new Vec2(fixationRecord.x, fixationRecord.y);
+
+            const gazeRecord = this._gazeTrackingData[len - 1];
+            const gazePosition = new Vec2(gazeRecord.x, gazeRecord.y);
+            const saccadeDirection = gazePosition.sub(fixationPosition).normalize();
+            const stimulusDirection = gazePosition.sub(stimulusPosition).normalize();
+
+            const distance = gazePosition.distance(stimulusPosition);
+            const thetaRad = Math.acos(saccadeDirection.dot(stimulusDirection));
+            const thetaDeg = thetaRad * (180 / Math.PI);
+            return thetaDeg <= toleranceAngle || distance <= toleranceRadius;
+        }
+        return false;
+    }
+
     remove() {
         this.scene.contentRoot.removeChild(this.editorEntity);
         this.scene.boundDirty = true;
-        // console.log(`Removed stimulus: ${this.name}`);
     }
 
     destroy() {
         this._updateHandle?.off();
         this._enableHandle?.off();
         this._materialUpdateHandle?.off();
+        this._trackingHandle?.off();
         super.destroy();
-        // console.log(`Destroyed stimulus: ${this.name}`);
     }
 
     serialize(serializer: Serializer): void {
