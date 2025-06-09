@@ -410,7 +410,7 @@ const clickListener = async function (event) {
         await setGlobalData();
 
         // // Debug line
-        console.log('Model size: ' + JSON.stringify(await localforage.getItem(localstorageDataLabel)).length / 1000000 + 'MB');
+        // console.log('Model size: ' + JSON.stringify(await localforage.getItem(localstorageDataLabel)).length / 1000000 + 'MB');
     }
 };
 
@@ -772,7 +772,7 @@ webgazer.end = function (regressionType) {
     gazeDot.remove();
 
     if (regressionType === 'threadedRidge') {
-        regs[0].stopWorker();
+        if (regs[0].stopWorker) regs[0].stopWorker();
     }
 
     return webgazer;

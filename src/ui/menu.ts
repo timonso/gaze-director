@@ -266,11 +266,21 @@ class Menu extends Container {
             icon: 'E135',
             onSelect: async () => await events.fire('gaze.stopTracking')
         }, {
+            text: 'Save Tracking Data',
+            onSelect: async () => await events.fire('gaze.saveTrackingData')
+        }, {
+            text: 'Clear Tracking Data',
+            onSelect: async () => await events.fire('gaze.clearTrackingData')
+        }, {
+            // separator
+        }, {
             text: 'Add Stimulus',
             onSelect: async () => await events.fire('tool.stimulusSelection')
         }, {
             text: 'Add Target',
             onSelect: async () => await events.fire('tool.targetSelection')
+        }, {
+            // separator
         }, {
             text: 'Toggle Blackout Screen',
             onSelect: async () => await events.fire('gaze.toggleBlackoutScreen')
@@ -286,9 +296,6 @@ class Menu extends Container {
         }, {
             text: 'Reset Calibration',
             onSelect: async () => await events.fire('gaze.resetCalibration')
-        }, {
-            text: 'Save Tracking Data',
-            onSelect: async () => await events.fire('gaze.saveRecording')
         }]);
 
         const helpMenuPanel = new MenuPanel([{

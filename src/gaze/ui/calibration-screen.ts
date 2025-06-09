@@ -1,7 +1,12 @@
-import { Color, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_TEXT, Entity, FITTING_BOTH, FITTING_NONE, FITTING_STRETCH, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, SCALEMODE_BLEND, SCALEMODE_NONE, Vec2 } from 'playcanvas';
+import {
+    Color,
+    ELEMENTTYPE_IMAGE,
+    Entity,
+    SCALEMODE_BLEND,
+    Vec2
+} from 'playcanvas';
 
 import { Events } from 'src/events';
-import { PCApp } from 'src/pc-app';
 import { Scene } from 'src/scene';
 
 import crossVector from '../images/cross.svg';
@@ -23,7 +28,10 @@ class CalibrationScreen {
             margin: [0, 0, 0, 0],
             pivot: [0.5, 0.5],
             scaleBlend: 0.5,
-            referenceResolution: new Vec2(scene.graphicsDevice.width, scene.graphicsDevice.height)
+            referenceResolution: new Vec2(
+                scene.graphicsDevice.width,
+                scene.graphicsDevice.height
+            )
         });
 
         const background = new Entity('blackout-screen_background');
@@ -41,7 +49,7 @@ class CalibrationScreen {
         this.blackoutScreen.addChild(background);
         this.blackoutScreen.enabled = false;
 
-        const overlay = this._overlay = document.createElement('div');
+        const overlay = (this._overlay = document.createElement('div'));
         overlay.id = 'calibration-screen-overlay';
         overlay.style.display = 'none';
         overlay.style.position = 'fixed';
@@ -84,7 +92,10 @@ class CalibrationScreen {
         });
 
         events.on('gaze.toggleBlackoutScreen', () => {
-            events.fire('gaze.showBlackoutScreen', !this.blackoutScreen.enabled);
+            events.fire(
+                'gaze.showBlackoutScreen',
+                !this.blackoutScreen.enabled
+            );
         });
 
         events.on('gaze.showCalibrationScreen', (value: boolean) => {
@@ -93,7 +104,10 @@ class CalibrationScreen {
         });
 
         events.on('gaze.toggleCalibrationScreen', () => {
-            events.fire('gaze.showCalibrationScreen', overlay.style.display !== 'block');
+            events.fire(
+                'gaze.showCalibrationScreen',
+                overlay.style.display !== 'block'
+            );
         });
 
         events.on('gaze.startCalibration', () => {
@@ -104,7 +118,7 @@ class CalibrationScreen {
             this._overlay.appendChild(this._grid);
             events.fire('gaze.showCalibrationScreen', true);
             events.fire('gaze.resetCalibration');
-            events.fire('gaze.startTracking', true);
+            events.fire('gaze.startTracking', true, 'ridge');
         });
 
         events.on('gaze.stopCalibration', () => {
@@ -114,7 +128,7 @@ class CalibrationScreen {
     }
 
     generateCalibrationGrid(): HTMLDivElement {
-        const grid = this._grid = document.createElement('div');
+        const grid = (this._grid = document.createElement('div'));
         grid.style.display = 'grid';
         grid.style.width = '100%';
         grid.style.height = '100%';
@@ -135,11 +149,12 @@ class CalibrationScreen {
             cell.style.height = '100%';
             grid.appendChild(cell);
 
-            const circle = document.createElement('button');
+            const circle = document.createElement('div');
+            circle.style.boxSizing = 'border-box';
             circle.style.width = '32px';
             circle.style.height = '32px';
             circle.style.cursor = 'crosshair';
-            circle.style.border = '1px solid #fff';
+            circle.style.border = '1px solid';
             circle.style.backgroundColor = 'rgba(50, 50, 50, 1.0)';
             circle.style.borderColor = 'rgba(80, 80, 80, 1.0)';
             circle.style.borderRadius = '50%';
@@ -159,7 +174,6 @@ class CalibrationScreen {
                 }
             };
             circle.addEventListener('click', handleClick);
-
         }
         return grid;
     }

@@ -9,7 +9,6 @@ import webgazer from '../webgazer/index.mjs';
 declare global {
     interface Window {
         webgazer: typeof webgazer;
-        saveDataAcrossSessions: boolean;
     }
 }
 
@@ -23,26 +22,31 @@ type SceneRecord = {
     modulated: boolean;
 }
 
+// TODO: change back to threaded
 const REGRESSION_TYPE = 'threadedRidge';
+// const REGRESSION_TYPE = 'ridge';
 const SAMPLING_RATE = 20; // [Hz]
 
 class GazeTracker {
     gazeTracker: typeof webgazer;
     currentRecordedData: GazeRecord[] = [];
     _recording: boolean = false;
-    _recorderHandle: any = null;
 
     constructor(scene: Scene, events: Events) {
-        events.on('gaze.startTracking', (showPoints = false) => {
-            this.startGazeTracking(showPoints, events);
+        events.on('gaze.startTracking', (showPoints = false, regressionType = REGRESSION_TYPE) => {
+            this.startGazeTracking(events, showPoints, regressionType);
         });
 
         events.on('gaze.stopTracking', () => {
             this.stopGazeTracking();
         });
 
-        events.on('gaze.saveRecording', (sceneData?: SceneRecord) => {
+        events.on('gaze.saveTrackingData', (sceneData?: SceneRecord) => {
             this.saveGazeRecording(sceneData);
+        });
+
+        events.on('gaze.clearTrackingData', (sceneData?: SceneRecord) => {
+            this.currentRecordedData.length = 0;
         });
 
         events.function('gaze.getTrackingData', () => {
@@ -52,6 +56,13 @@ class GazeTracker {
         // TODO: call at the end of scene sequence
         events.on('gaze.resetCalibration', () => {
             this.resetCalibration();
+        });
+
+        events.on('gaze.removeTrackingDot', () => {
+            const gazeDot = document.getElementById('webgazerGazeDot');
+            if (gazeDot && gazeDot.parentNode) {
+                gazeDot.parentNode.removeChild(gazeDot);
+            }
         });
 
         events.on('timeline.frame', async (frame: number) => {
@@ -66,17 +77,16 @@ class GazeTracker {
         this.gazeTracker = window.webgazer = webgazer;
     }
 
-    async startGazeTracking(showPoints = false, events: Events) {
+    async startGazeTracking(events: Events, showPoints = false, regressionType = REGRESSION_TYPE) {
         this.currentRecordedData.length = 0;
 
-        this.gazeTracker =
         this.gazeTracker
-        .setRegression(REGRESSION_TYPE)
-        .applyKalmanFilter(true)
+        .setRegression(regressionType)
         .setTracker('TFFacemesh')
+        .applyKalmanFilter(true)
+        .saveDataAcrossSessions(true)
         .showVideoPreview(false)
-        .showPredictionPoints(showPoints)
-        .saveDataAcrossSessions(true);
+        .showPredictionPoints(showPoints);
 
         // wait for the tracker to finish initialization
         await this.gazeTracker.begin();
@@ -123,12 +133,10 @@ class GazeTracker {
         URL.revokeObjectURL(url);
     }
 
-    stopGazeTracking(saveRecording = false) {
+    stopGazeTracking(saveTrackingData = false) {
         this._recording = false;
-        clearInterval(this._recorderHandle);
         this.gazeTracker.end(REGRESSION_TYPE);
-        this.gazeTracker.showVideoPreview(false).showPredictionPoints(false);
-        if (saveRecording) this.saveGazeRecording();
+        if (saveTrackingData) this.saveGazeRecording();
     }
 
     resetCalibration() {

@@ -16,8 +16,8 @@ import {
 
 import { Element, ElementType } from '../element';
 import { Serializer } from '../serializer';
-import * as editorShaders from './shaders/stimulus_editor-shader';
 import { GazeRecord } from './gaze-tracker';
+import * as editorShaders from './shaders/stimulus_editor-shader';
 
 const bound = new BoundingBox();
 
@@ -174,23 +174,23 @@ class Stimulus extends Element {
         );
     }
 
-    suppressStimulus(toleranceAngle: number = 10, toleranceRadius: number = 64): boolean {
-        if (this._gazeTrackingData.length > 1) {
-            const len = this._gazeTrackingData.length;
+    suppressStimulus(toleranceAngle: number = 10, toleranceRadius: number = 128): boolean {
+        const len = this._gazeTrackingData.length;
+        if (len > 1) {
             const stimulusPosition = new Vec2(this.screenPosition.x, this.screenPosition.y);
-
             const fixationRecord = this._gazeTrackingData[len - 2];
-            const fixationPosition = new Vec2(fixationRecord.x, fixationRecord.y);
-
             const gazeRecord = this._gazeTrackingData[len - 1];
+            const fixationPosition = new Vec2(fixationRecord.x, fixationRecord.y);
             const gazePosition = new Vec2(gazeRecord.x, gazeRecord.y);
-            const saccadeDirection = gazePosition.sub(fixationPosition).normalize();
-            const stimulusDirection = gazePosition.sub(stimulusPosition).normalize();
 
             const distance = gazePosition.distance(stimulusPosition);
+            if (distance <= toleranceRadius) return true;
+
+            const stimulusDirection = gazePosition.sub(stimulusPosition).normalize();
+            const saccadeDirection = gazePosition.sub(fixationPosition).normalize();
             const thetaRad = Math.acos(saccadeDirection.dot(stimulusDirection));
             const thetaDeg = thetaRad * (180 / Math.PI);
-            return thetaDeg <= toleranceAngle || distance <= toleranceRadius;
+            // return thetaDeg <= toleranceAngle;
         }
         return false;
     }

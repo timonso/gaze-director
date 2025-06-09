@@ -92,8 +92,8 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['I', 'i'], { event: 'select.invert', ctrl: true });
     shortcuts.register(['H', 'h'], { event: 'select.hide' });
     shortcuts.register(['U', 'u'], { event: 'select.unhide' });
-    shortcuts.register(['<'], { event: 'tool.brushSelection.smaller' });
-    shortcuts.register(['>'], { event: 'tool.brushSelection.bigger' });
+    shortcuts.register(['<'], { event: 'tool.brushSelection.smaller', shift: true });
+    shortcuts.register(['>'], { event: 'tool.brushSelection.bigger', shift: true });
     shortcuts.register(['Z', 'z'], { event: 'edit.undo', ctrl: true, capture: true });
     shortcuts.register(['Z', 'z'], { event: 'edit.redo', ctrl: true, shift: true, capture: true });
     shortcuts.register(['M', 'm'], { event: 'camera.toggleMode' });
@@ -107,6 +107,7 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['}'], { event: 'gaze.stopCalibration', shift: true });
     shortcuts.register(['['], { event: 'gaze.startTracking' });
     shortcuts.register([']'], { event: 'gaze.stopTracking' });
+    shortcuts.register(['.'], { event: 'gaze.removeTrackingDot' });
 
     return shortcuts;
 };
