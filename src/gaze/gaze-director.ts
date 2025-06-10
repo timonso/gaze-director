@@ -1,10 +1,12 @@
 import { Asset, Color, Vec3 } from 'playcanvas';
 
 import { EditHistory } from 'src/edit-history';
+import { ElementType } from 'src/element';
 import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
 import { GazeTracker } from './gaze-tracker';
+import { ScenePlayer } from './scene-player';
 import { Stimulus } from './stimulus';
 import { StimulusRenderer } from './stimulus-renderer';
 import { Target } from './target';
@@ -62,12 +64,14 @@ class GazeDirector {
     targetRenderer: TargetRenderer;
     calibrationScreen: CalibrationScreen;
     gazeTracker: GazeTracker;
+    scenePlayer: ScenePlayer;
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
         this.targetRenderer = new TargetRenderer(scene, events);
         this.calibrationScreen = new CalibrationScreen(scene, events);
         this.gazeTracker = new GazeTracker(scene, events);
+        this.scenePlayer = new ScenePlayer(scene, events);
 
         events.on(
             'gaze.addStimulus',
@@ -109,6 +113,14 @@ class GazeDirector {
                 editHistory.add(new AddTargetOp(scene, target));
             }
         );
+
+        events.function('gaze.allStimuli', () => {
+            return (scene.getElementsByType(ElementType.gaze_stimulus));
+        });
+
+        events.function('gaze.allTargets', () => {
+            return (scene.getElementsByType(ElementType.gaze_target));
+        });
     }
 }
 

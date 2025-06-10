@@ -1,4 +1,8 @@
+import { Color, Vec3 } from 'playcanvas';
+
 import { Events } from './events';
+import { Stimulus } from './gaze/stimulus';
+import { Target } from './gaze/target';
 import { Scene } from './scene';
 import { DownloadWriter, FileStreamWriter } from './serialize/writer';
 import { ZipWriter } from './serialize/zip-writer';
@@ -9,12 +13,14 @@ import { localize } from './ui/localization';
 // ts compiler and vscode find this type, but eslint does not
 type FilePickerAcceptType = unknown;
 
-const SuperFileType: FilePickerAcceptType[] = [{
-    description: 'SuperSplat document',
-    accept: {
-        'application/x-supersplat': ['.ssproj']
+const SuperFileType: FilePickerAcceptType[] = [
+    {
+        description: 'SuperSplat document',
+        accept: {
+            'application/x-supersplat': ['.ssproj']
+        }
     }
-}];
+];
 
 type FileSelectorCallback = (fileList: File) => void;
 
@@ -61,7 +67,11 @@ const registerDocEvents = (scene: Scene, events: Events) => {
         const result = await events.invoke('showPopup', {
             type: 'yesno',
             header: localize('doc.reset'),
-            message: localize(events.invoke('scene.dirty') ? 'doc.unsaved-message' : 'doc.reset-message')
+            message: localize(
+                events.invoke('scene.dirty') ?
+                    'doc.unsaved-message' :
+                    'doc.reset-message'
+            )
         });
 
         if (result.action !== 'yes') {
@@ -91,12 +101,15 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             // @ts-ignore
             const zip = new JSZip();
             await zip.loadAsync(file);
-            const document = JSON.parse(await zip.file('document.json').async('text'));
+            const documentContent = JSON.parse(
+                await zip.file('document.json').async('text')
+            );
+            console.log('Document loaded', documentContent);
 
             // run through each splat and load it
-            for (let i = 0; i < document.splats.length; ++i) {
+            for (let i = 0; i < documentContent.splats.length; ++i) {
                 const filename = `splat_${i}.ply`;
-                const splatSettings = document.splats[i];
+                const splatSettings = documentContent.splats[i];
 
                 // construct the splat asset
                 const contents = await zip.file(`splat_${i}.ply`).async('blob');
@@ -112,16 +125,64 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                 splat.docDeserialize(splatSettings);
             }
 
+            for (let i = 0; i < documentContent.gaze_stimuli.length; ++i) {
+                const {
+                    position,
+                    radius,
+                    duration,
+                    startFrame,
+                    intensity,
+                    frequency,
+                    hardness
+                } = documentContent.gaze_stimuli[i];
+                const stimulus = new Stimulus(
+                    new Vec3(position),
+                    radius,
+                    duration,
+                    startFrame,
+                    intensity,
+                    frequency,
+                    hardness
+                );
+                scene.add(stimulus);
+            }
+
+            for (let i = 0; i < documentContent.gaze_targets.length; ++i) {
+                const {
+                    position,
+                    radius,
+                    duration,
+                    startFrame,
+                    opacity,
+                    lightPosition,
+                    specularFactor,
+                    color
+                } = documentContent.gaze_targets[i];
+                const target = new Target(
+                    scene,
+                    events,
+                    new Vec3(position),
+                    radius,
+                    duration,
+                    startFrame,
+                    opacity,
+                    new Vec3(lightPosition),
+                    specularFactor,
+                    new Color(color)
+                );
+                scene.add(target);
+            }
+
             // FIXME: trigger scene bound calc in a better way
             const tmp = scene.bound;
             if (tmp === null) {
                 console.error('this should never fire');
             }
 
-            events.invoke('docDeserialize.timeline', document.timeline);
-            events.invoke('docDeserialize.poseSets', document.poseSets);
-            events.invoke('docDeserialize.view', document.view);
-            scene.camera.docDeserialize(document.camera);
+            events.invoke('docDeserialize.timeline', documentContent.timeline);
+            events.invoke('docDeserialize.poseSets', documentContent.poseSets);
+            events.invoke('docDeserialize.view', documentContent.view);
+            scene.camera.docDeserialize(documentContent.camera);
         } catch (error) {
             await events.invoke('showPopup', {
                 type: 'error',
@@ -133,11 +194,17 @@ const registerDocEvents = (scene: Scene, events: Events) => {
         }
     };
 
-    const saveDocument = async (options: { stream?: FileSystemWritableFileStream, filename?: string }) => {
+    const saveDocument = async (options: {
+        stream?: FileSystemWritableFileStream;
+        filename?: string;
+    }) => {
         events.fire('startSpinner');
 
         try {
             const splats = events.invoke('scene.allSplats') as Splat[];
+
+            const gaze_stimuli: Stimulus[] = events.invoke('gaze.allStimuli');
+            const gaze_targets: Target[] = events.invoke('gaze.allTargets');
 
             const document = {
                 version: 0,
@@ -145,7 +212,10 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                 view: events.invoke('docSerialize.view'),
                 poseSets: events.invoke('docSerialize.poseSets'),
                 timeline: events.invoke('docSerialize.timeline'),
-                splats: splats.map(s => s.docSerialize())
+                splats: splats.map(s => s.docSerialize()),
+
+                gaze_stimuli: gaze_stimuli.map(s => s.docSerialize()),
+                gaze_targets: gaze_targets.map(t => t.docSerialize())
             };
 
             const serializeSettings = {
@@ -157,7 +227,9 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                 keepColorTint: true
             };
 
-            const writer = options.stream ? new FileStreamWriter(options.stream) : new DownloadWriter(options.filename);
+            const writer = options.stream ?
+                new FileStreamWriter(options.stream) :
+                new DownloadWriter(options.filename);
             const zipWriter = new ZipWriter(writer);
             await zipWriter.file('document.json', JSON.stringify(document));
             for (let i = 0; i < splats.length; ++i) {
@@ -179,7 +251,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
 
     // handle user requesting a new document
     events.function('doc.new', async () => {
-        if (!await getResetConfirmation()) {
+        if (!(await getResetConfirmation())) {
             return false;
         }
         resetScene();
@@ -191,7 +263,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
     // (which would result in more seamless user experience), but this is not yet supported in
     // other browsers.
     events.function('doc.dropped', async (file: File) => {
-        if (!events.invoke('scene.empty') && !await getResetConfirmation()) {
+        if (!events.invoke('scene.empty') && !(await getResetConfirmation())) {
             return false;
         }
 
@@ -201,7 +273,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
     });
 
     events.function('doc.open', async () => {
-        if (!events.invoke('scene.empty') && !await getResetConfirmation()) {
+        if (!events.invoke('scene.empty') && !(await getResetConfirmation())) {
             return false;
         }
 
@@ -245,7 +317,10 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                 });
                 events.fire('doc.saved');
             } catch (error) {
-                if (error.name !== 'AbortError' && error.name !== 'NotAllowedError') {
+                if (
+                    error.name !== 'AbortError' &&
+                    error.name !== 'NotAllowedError'
+                ) {
                     console.error(error);
                 }
             }

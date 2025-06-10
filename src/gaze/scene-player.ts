@@ -16,6 +16,14 @@ class ScenePlayer {
             document.body.classList.toggle('hidden');
         });
 
+        events.on('gaze.showStimuliEditor', (isVisible: boolean) => {
+            scene.gaze_editorLayer.enabled = isVisible;
+        });
+
+        events.on('gaze.showStimuliPlayer', (isVisible: boolean) => {
+            scene.gaze_stimulusLayer.enabled = isVisible;
+        });
+
         events.on('gaze.setInterfaceHidden', (isHidden: boolean) => {
             if (isHidden) {
                 document.body.classList.add('hidden');

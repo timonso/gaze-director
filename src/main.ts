@@ -7,7 +7,6 @@ import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { initFileHandler } from './file-handler';
 import { GazeDirector } from './gaze/gaze-director';
-import { ScenePlayer } from './gaze/scene-player';
 import { StimulusSelection } from './gaze/tools/stimulus-selection';
 import { registerPlySequenceEvents } from './ply-sequence';
 import { registerPublishEvents } from './publish';
@@ -273,7 +272,6 @@ const main = async () => {
     // TODO: turn into elements and add to scene in scene.ts
     // gaze tool initialization
     const gazeTracker = new GazeDirector(scene, events, editHistory);
-    const scenePlayer = new ScenePlayer(scene, events);
 
     toolManager.register('stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('targetSelection', new TargetSelection(scene, events, editorUI.canvasContainer));

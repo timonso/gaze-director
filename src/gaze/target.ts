@@ -232,6 +232,19 @@ class Target extends Element {
     get worldBound(): BoundingBox | null {
         return bound;
     }
+
+    docSerialize() {
+        return {
+            position: this.editorEntity.getPosition().toArray(),
+            radius: this.radius,
+            duration: this.duration,
+            startFrame: this.startFrame,
+            opacity: this.opacity,
+            lightPosition: this.lightPosition.toArray(),
+            specularFactor: this.specularFactor,
+            color: this.color.toArray()
+        };
+    }
 }
 
 export { Target };

@@ -210,7 +210,7 @@ class Stimulus extends Element {
 
     serialize(serializer: Serializer): void {
         serializer.packa(this.editorEntity.getWorldTransform().data);
-        // serializer.pack(this.radius);
+        serializer.pack(this.radius);
     }
 
     moved() {
@@ -225,6 +225,18 @@ class Stimulus extends Element {
 
     get worldBound(): BoundingBox | null {
         return bound;
+    }
+
+    docSerialize() {
+        return {
+            position: this.worldPosition.toArray(),
+            radius: this.radius,
+            duration: this.duration,
+            startFrame: this.startFrame,
+            intensity: this.intensity,
+            frequency: this.frequency,
+            hardness: this.hardness
+        };
     }
 }
 
