@@ -127,6 +127,8 @@ class Target extends Element {
         });
 
         this.material = createMaterial('target_editor', editorShaders.vertexShader, editorShaders.fragmentShader);
+        this._backgroundBuffer = events.invoke('gaze.getBackgroundBuffer');
+        this.material.setParameter('backgroundBuffer', this._backgroundBuffer);
 
         this.opacity = opacity;
         this.duration = duration;

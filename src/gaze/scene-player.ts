@@ -52,7 +52,7 @@ class ScenePlayer {
             this._isPlaying = false;
             scene.gizmoLayer.enabled = true;
             events.fire('gaze.setInterfaceHidden', false);
-            events.fire('grid.setVisible', true);
+            events.fire('grid.visible', true);
             events.fire('camera.setBound', true);
             events.fire('timeline.setPlaying', false);
         });

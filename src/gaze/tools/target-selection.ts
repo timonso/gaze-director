@@ -202,7 +202,7 @@ class TargetSelection {
             scene.add(target);
             gizmo.attach([target.editorEntity]);
             targetToolbar.hidden = false;
-            events.fire('grid.visible', false);
+            events.fire('grid.setVisible', false);
         };
 
         this.deactivate = () => {
