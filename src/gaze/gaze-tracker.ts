@@ -122,7 +122,7 @@ class GazeTracker {
         a.href = url;
 
         if (sceneData) {
-            a.download = `gr_$s{sceneData.sceneId}_p${sceneData.participantId}_m${sceneData.modulated ? '1' : '0'}.csv`;
+            a.download = `gr_s${sceneData.sceneId}_p${sceneData.participantId}_m${sceneData.modulated ? '1' : '0'}.csv`;
         } else {
             a.download = `gr_${Date.now()}.csv`;
         }
@@ -144,4 +144,4 @@ class GazeTracker {
     }
 }
 
-export { GazeRecord, GazeTracker };
+export { GazeRecord, SceneRecord, GazeTracker };

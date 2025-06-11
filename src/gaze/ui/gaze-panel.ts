@@ -77,11 +77,11 @@ class GazePanel extends Container {
         targetsHeader.append(addTarget);
 
         addStimulus.on('click', async () => {
-            await events.fire('tool.stimulusSelection');
+            await events.fire('tool.gaze.stimulusSelection');
         });
 
         addTarget.on('click', async () => {
-            await events.fire('tool.targetSelection');
+            await events.fire('tool.gaze.targetSelection');
         });
 
         tooltips.register(addStimulus, 'New Stimulus', 'top');

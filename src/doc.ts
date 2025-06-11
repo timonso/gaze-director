@@ -104,7 +104,6 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             const documentContent = JSON.parse(
                 await zip.file('document.json').async('text')
             );
-            console.log('Document loaded', documentContent);
 
             // run through each splat and load it
             for (let i = 0; i < documentContent.splats.length; ++i) {
@@ -306,6 +305,30 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                     console.error(error);
                 }
             }
+        }
+    });
+
+    events.function('gaze.doc.openFromServer', async (url: string) => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to fetch scene: ${response.statusText}`
+                );
+            }
+
+            const content = await response.blob();
+            const fileName = url.split('/').pop() || 'scene.ssproj';
+            await loadDocument(
+                new File([content], fileName)
+            );
+
+            events.fire('doc.setName', fileName);
+            return true;
+
+        } catch (error) {
+            console.error('Failed to open scene from server:', error);
+            return false;
         }
     });
 

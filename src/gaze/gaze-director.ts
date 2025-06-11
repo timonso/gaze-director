@@ -12,6 +12,7 @@ import { StimulusRenderer } from './stimulus-renderer';
 import { Target } from './target';
 import { TargetRenderer } from './target-renderer';
 import { CalibrationScreen } from './ui/calibration-screen';
+import { SceneSequencer } from './scene-sequencer';
 
 class AddStimulusOp {
     name: 'addStimulus';
@@ -65,6 +66,7 @@ class GazeDirector {
     calibrationScreen: CalibrationScreen;
     gazeTracker: GazeTracker;
     scenePlayer: ScenePlayer;
+    sceneSequencer: SceneSequencer;
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
@@ -72,6 +74,7 @@ class GazeDirector {
         this.calibrationScreen = new CalibrationScreen(scene, events);
         this.gazeTracker = new GazeTracker(scene, events);
         this.scenePlayer = new ScenePlayer(scene, events);
+        this.sceneSequencer = new SceneSequencer(scene, events);
 
         events.on(
             'gaze.addStimulus',

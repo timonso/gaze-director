@@ -258,6 +258,14 @@ class Scene {
             this.remove(splat);
             (splat as Splat).destroy();
         });
+        const stimuli = this.getElementsByType(ElementType.gaze_stimulus);
+        stimuli.forEach((stimulus) => {
+            this.remove(stimulus);
+        });
+        const targets = this.getElementsByType(ElementType.gaze_target);
+        targets.forEach((target) => {
+            this.remove(target);
+        });
     }
 
     // add a scene element

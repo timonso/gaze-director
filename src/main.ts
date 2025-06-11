@@ -7,7 +7,9 @@ import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { initFileHandler } from './file-handler';
 import { GazeDirector } from './gaze/gaze-director';
+import { SequenceSetup } from './gaze/tools/sequence-setup';
 import { StimulusSelection } from './gaze/tools/stimulus-selection';
+import { TargetSelection } from './gaze/tools/target-selection';
 import { registerPlySequenceEvents } from './ply-sequence';
 import { registerPublishEvents } from './publish';
 import { registerRenderEvents } from './render';
@@ -28,7 +30,6 @@ import { SphereSelection } from './tools/sphere-selection';
 import { ToolManager } from './tools/tool-manager';
 import { registerTransformHandlerEvents } from './transform-handler';
 import { EditorUI } from './ui/editor';
-import { TargetSelection } from './gaze/tools/target-selection';
 
 
 declare global {
@@ -98,7 +99,7 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['M', 'm'], { event: 'camera.toggleMode' });
     shortcuts.register(['D', 'd'], { event: 'dataPanel.toggle' });
     shortcuts.register(['O', 'o'], { event: 'camera.toggleOverlay' });
-    shortcuts.register([' '], { event: 'gaze.toggleScene' });
+
     shortcuts.register(['I', 'i'], { event: 'gaze.toggleInterface' });
     shortcuts.register(['+', '='], { event: 'gaze.toggleCalibrationScreen' });
     shortcuts.register(['_', '-'], { event: 'gaze.toggleBlackoutScreen' });
@@ -107,6 +108,8 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['['], { event: 'gaze.startTracking' });
     shortcuts.register([']'], { event: 'gaze.stopTracking' });
     shortcuts.register(['.'], { event: 'gaze.removeTrackingDot' });
+    shortcuts.register([' '], { event: 'gaze.toggleScene' });
+    shortcuts.register(['Enter'], { event: 'gaze.continueSequence' });
 
     return shortcuts;
 };
@@ -269,13 +272,11 @@ const main = async () => {
     initShortcuts(events);
     initFileHandler(scene, events, editorUI.appContainer.dom, remoteStorageDetails);
 
-    // TODO: turn into elements and add to scene in scene.ts
     // gaze tool initialization
     const gazeTracker = new GazeDirector(scene, events, editHistory);
-
-    toolManager.register('stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
-    toolManager.register('targetSelection', new TargetSelection(scene, events, editorUI.canvasContainer));
-
+    toolManager.register('gaze.stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
+    toolManager.register('gaze.targetSelection', new TargetSelection(scene, events, editorUI.canvasContainer));
+    toolManager.register('gaze.sequenceSetup', new SequenceSetup(scene, events, editorUI.canvasContainer));
 
     // load async models
     scene.start();

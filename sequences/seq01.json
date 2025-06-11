@@ -1,0 +1,16 @@
+{
+    "scenes": [
+        {
+            "id": "scene1",
+            "filepath": "scenes/greenhouse01.ssproj",
+            "repetitions": 1,
+            "showStimuli": true
+        },
+        {
+            "id": "scene2",
+            "filepath": "scenes/greenhouse01.ssproj",
+            "repetitions": 2,
+            "showStimuli": false
+        }
+    ]
+}

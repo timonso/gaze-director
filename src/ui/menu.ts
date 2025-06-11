@@ -275,10 +275,10 @@ class Menu extends Container {
             // separator
         }, {
             text: 'Add Stimulus',
-            onSelect: async () => await events.fire('tool.stimulusSelection')
+            onSelect: async () => await events.fire('tool.gaze.stimulusSelection')
         }, {
             text: 'Add Target',
-            onSelect: async () => await events.fire('tool.targetSelection')
+            onSelect: async () => await events.fire('tool.gaze.targetSelection')
         }, {
             // separator
         }, {
@@ -296,6 +296,11 @@ class Menu extends Container {
         }, {
             text: 'Reset Calibration',
             onSelect: async () => await events.fire('gaze.resetCalibration')
+        }, {
+            // separator
+        }, {
+            text: 'Setup Sequence',
+            onSelect: async () => await events.fire('tool.gaze.sequenceSetup')
         }]);
 
         const helpMenuPanel = new MenuPanel([{
