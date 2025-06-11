@@ -51,12 +51,12 @@ class SceneSequencer {
             this.stopSequence(events);
         });
 
-        events.on('timeline.frame', async (frame: number) => {
+        events.on('timeline.time', (time: number) => {
             if (this.enabled) {
                 const idx = this.currentSceneIndex;
                 const scenes = this.currentSequence.scenes;
 
-                if (frame >= this.currentSceneDuration) {
+                if (time >= this.currentSceneDuration) {
                     this.currentSceneRepetition++;
 
                     if (this.currentSceneRepetition >= scenes[idx].repetitions) {
