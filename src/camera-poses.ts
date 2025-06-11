@@ -89,6 +89,12 @@ const registerCameraPosesEvents = (events: Events) => {
         events.fire('timeline.removeKey', index);
     };
 
+    const resetPoses = () => {
+        for (let i = poses.length - 1; i >= 0; --i) {
+            removePose(i);
+        }
+    };
+
     events.function('camera.poses', () => {
         return poses;
     });
@@ -111,6 +117,10 @@ const registerCameraPosesEvents = (events: Events) => {
 
     events.on('timeline.remove', (index: number) => {
         removePose(index);
+    });
+
+    events.on('timeline.resetPoses', () => {
+        resetPoses();
     });
 
     events.on('timeline.frames', () => {

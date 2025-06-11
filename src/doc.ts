@@ -84,6 +84,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
     // reset the scene
     const resetScene = () => {
         events.fire('scene.clear');
+        events.fire('timeline.resetPoses');
         events.fire('camera.reset');
         events.fire('doc.setName', null);
         documentFileHandle = null;

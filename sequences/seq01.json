@@ -2,14 +2,14 @@
     "scenes": [
         {
             "id": "scene1",
-            "filepath": "scenes/greenhouse01.ssproj",
-            "repetitions": 1,
+            "filepath": "scenes/tree.ssproj",
+            "repetitions": 2,
             "showStimuli": true
         },
         {
             "id": "scene2",
             "filepath": "scenes/greenhouse01.ssproj",
-            "repetitions": 2,
+            "repetitions": 1,
             "showStimuli": false
         }
     ]
