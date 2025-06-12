@@ -11,13 +11,15 @@ type GazeScene = {
 }
 
 type SequenceData = {
+    persistentTargets: boolean;
     scenes: GazeScene[];
 }
 
 class SceneSequencer {
     enabled: boolean = false;
     participantId: string = 'default';
-    currentSequence: SequenceData = { scenes: [] };
+    viewingDistance: number = 40; // [cm]
+    currentSequence: SequenceData = { persistentTargets: true, scenes: [] };
     scenesLocation: string = 'http://localhost:8080/';
     currentSceneIndex: number = 0;
     currentSceneDuration: number = 0;
@@ -37,6 +39,10 @@ class SceneSequencer {
 
         events.on('gaze.setParticipant', (id: string) => {
             this.participantId = id;
+        });
+
+        events.on('gaze.setViewingDistance', (distance: number) => {
+            this.viewingDistance = distance;
         });
 
         events.on('gaze.startSequence', () => {
@@ -100,7 +106,7 @@ class SceneSequencer {
             console.log(`Playing scene #${idx}`);
 
             events.fire('gaze.showStimuliPlayer', scenes[idx].showStimuli);
-            this.currentSceneDuration = events.invoke('timeline.frames') - 1;
+            this.currentSceneDuration = events.invoke('timeline.frames') - 5;
             console.log('Scene duration: ', this.currentSceneDuration);
         })
         .catch((error) => {
@@ -123,6 +129,8 @@ class SceneSequencer {
             this.enabled = false;
             return;
         }
+
+        events.fire('gaze.ignoreTargetTimings', this.currentSequence.persistentTargets);
 
         console.log(`=== Starting sequence for participant ${this.participantId} ===`);
         this.playNextScene(events);

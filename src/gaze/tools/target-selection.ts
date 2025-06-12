@@ -16,6 +16,8 @@ import { Events } from 'src/events';
 import { Scene } from '../../scene';
 import { Splat } from '../../splat';
 import { Target } from '../target';
+import { GazeDirector, STIMULUS_VISUAL_ANGLE } from '../gaze-director';
+import { Stimulus } from '../stimulus';
 
 class TargetSelection {
     activate: () => void;
@@ -140,9 +142,12 @@ class TargetSelection {
                 events.fire(
                     'gaze.addStimulus',
                     target.editorEntity.getPosition(),
-                    target._radius,
+                    Stimulus.defaultVisualAngle,
                     target.duration,
-                    currentFrame
+                    currentFrame,
+                    Stimulus.defaultIntensity,
+                    Stimulus.defaultFrequency,
+                    Stimulus.defaultHardness
                 );
             }
         });

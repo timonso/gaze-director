@@ -46,11 +46,11 @@ class StimulusSelection {
             class: 'select-toolbar-button'
         });
         const radiusSlider = new NumericInput({
-            precision: 0,
-            value: stimulus.radius,
-            placeholder: 'Radius [px]',
+            precision: 3,
+            value: stimulus.visualAngle,
+            placeholder: 'Radius [deg]',
             width: 120,
-            min: 1.0
+            min: 0.0
         });
         const intensitySlider = new NumericInput({
             precision: 3,
@@ -98,7 +98,7 @@ class StimulusSelection {
             events.fire(
                 'gaze.addStimulus',
                 stimulus.editorEntity.getPosition(),
-                stimulus._outerRadius,
+                stimulus.visualAngle,
                 stimulus.duration,
                 currentFrame,
                 stimulus.intensity,

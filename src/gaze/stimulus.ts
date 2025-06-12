@@ -16,6 +16,7 @@ import {
 
 import { Element, ElementType } from '../element';
 import { Serializer } from '../serializer';
+import { STIMULUS_FREQUENCY, STIMULUS_HARDNESS, STIMULUS_VISUAL_ANGLE, STMULUS_INTENSITY, TOLERANCE_ANGLE, TOLERANCE_RADIUS, visualAngleToPixels } from './gaze-director';
 import { GazeRecord } from './gaze-tracker';
 import * as editorShaders from './shaders/stimulus_editor-shader';
 
@@ -52,24 +53,33 @@ class Stimulus extends Element {
     name: string = 'stimulus';
     worldPosition: Vec3 = new Vec3(0, 0, 0);
     screenPosition: Vec3 = new Vec3(0, 0, 0);
-    intensity: number = 0.095;
-    startFrame: number = 0; // [frames]
-    duration: number = 5.0; // [seconds]
-    frequency: number = 10.0; // [Hz]
-    hardness: number = 0.2; // [0..1]
+    intensity: number; // [0-1]
+    visualAngle: number; // [degrees]
+    startFrame: number; // [frames]
+    duration: number; // [seconds]
+    frequency: number; // [Hz]
+    hardness: number; // [0-1]
 
-    _outerRadius: number = 32; // [px]
-    _editorRadius: number = 1.0; // [scene units]
+    _outerRadius: number; // [px]
+    _editorRadius: number; // [scene units]
     _updateHandle: EventHandle;
     _enableHandle: EventHandle;
     _materialUpdateHandle: EventHandle;
     _gazeTrackingData: GazeRecord[] = [];
     _trackingHandle: EventHandle;
 
-    set radius(radius: number) {
-        this._outerRadius = radius;
+    static toleranceRadius: number = TOLERANCE_RADIUS; // [px]
+    static toleranceAngle: number = TOLERANCE_ANGLE; // [degrees]
+    static defaultVisualAngle: number = STIMULUS_VISUAL_ANGLE; // [degrees]
+    static defaultIntensity: number = STMULUS_INTENSITY; // [0-1]
+    static defaultFrequency: number = STIMULUS_FREQUENCY; // [Hz]
+    static defaultHardness: number = STIMULUS_HARDNESS; // [0-1]
 
-        const r = (this._editorRadius = radius * EDITOR_SCALE);
+    set radius(radius: number) {
+        this.visualAngle = radius;
+        this._outerRadius = visualAngleToPixels(radius);
+
+        const r = (this._editorRadius = this._outerRadius * EDITOR_SCALE);
         this.editorEntity.setLocalScale(r, r, r);
     }
     get radius() {
@@ -78,11 +88,11 @@ class Stimulus extends Element {
 
     constructor(
         position: Vec3 = new Vec3(0, 0, 0),
-        radius: number = 32,
+        radius: number = STIMULUS_VISUAL_ANGLE,
         duration: number = 5.0,
         startFrame: number = 0,
-        intensity: number = 0.095,
-        frequency: number = 10.0,
+        intensity: number = STMULUS_INTENSITY,
+        frequency: number = STIMULUS_FREQUENCY,
         hardness: number = 0.2
     ) {
         super(ElementType.gaze_stimulus);
@@ -130,6 +140,7 @@ class Stimulus extends Element {
                 [`s: ${this.startFrame}`,
                     `d: ${this.duration}`,
                     `e: ${endFrame}`,
+                    `a: ${this.visualAngle}`,
                     `r: ${this.radius}`,
                     `i: ${this.intensity}`,
                     `h: ${this.hardness}`,
@@ -160,13 +171,9 @@ class Stimulus extends Element {
             }
         });
 
-        // this._trackingHandle = events.on('gaze.startTracking', (_) => {
-        //     this._gazeTrackingData = events.invoke('gaze.getTrackingData') || [];
-        // });
-
         this._enableHandle = events.on(
             'timeline.setPlaying',
-            (value: boolean) => {
+            (_) => {
                 this.active = false;
                 this.visible = false;
                 scene.forceRender = true;
@@ -174,7 +181,7 @@ class Stimulus extends Element {
         );
     }
 
-    suppressStimulus(toleranceAngle: number = 10, toleranceRadius: number = 128): boolean {
+    suppressStimulus(toleranceRadius: number = Stimulus.toleranceRadius, toleranceAngle: number = Stimulus.toleranceAngle): boolean {
         const len = this._gazeTrackingData.length;
         if (len > 1) {
             const stimulusPosition = new Vec2(this.screenPosition.x, this.screenPosition.y);
@@ -190,7 +197,7 @@ class Stimulus extends Element {
             const saccadeDirection = gazePosition.sub(fixationPosition).normalize();
             const thetaRad = Math.acos(saccadeDirection.dot(stimulusDirection));
             const thetaDeg = thetaRad * (180 / Math.PI);
-            // return thetaDeg <= toleranceAngle;
+            return thetaDeg <= toleranceAngle;
         }
         return false;
     }
@@ -230,7 +237,7 @@ class Stimulus extends Element {
     docSerialize() {
         return {
             position: this.worldPosition.toArray(),
-            radius: this.radius,
+            radius: this.visualAngle,
             duration: this.duration,
             startFrame: this.startFrame,
             intensity: this.intensity,

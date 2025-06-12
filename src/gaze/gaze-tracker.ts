@@ -33,12 +33,12 @@ class GazeTracker {
     _recording: boolean = false;
 
     constructor(scene: Scene, events: Events) {
-        events.on('gaze.startTracking', (showPoints = false, regressionType = REGRESSION_TYPE) => {
-            this.startGazeTracking(events, showPoints, regressionType);
+        events.on('gaze.startTracking', (showPoints = true, regressionType = REGRESSION_TYPE) => {
+            if (!this._recording) this.startGazeTracking(events, showPoints, regressionType);
         });
 
         events.on('gaze.stopTracking', () => {
-            this.stopGazeTracking();
+            if (this._recording) this.stopGazeTracking();
         });
 
         events.on('gaze.saveTrackingData', (sceneData?: SceneRecord) => {
@@ -65,11 +65,11 @@ class GazeTracker {
             }
         });
 
-        events.on('timeline.frame', async (frame: number) => {
+        events.on('timeline.time', async (time: number) => {
             if (this._recording) {
                 const prediction = await this.gazeTracker.getCurrentPrediction();
                 if (prediction) {
-                    this.currentRecordedData.push({ x: prediction.x, y: prediction.y, timestamp: frame });
+                    this.currentRecordedData.push({ x: prediction.x, y: prediction.y, timestamp: time });
                 }
             }
         });

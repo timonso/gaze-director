@@ -61,6 +61,8 @@ class Target extends Element {
     _resizeHandle: EventHandle;
     _updateHandle: EventHandle;
 
+    static persistent: boolean;
+
     set radius(radius: number) {
         this._radius = radius;
         const r = (this._debugRadius = radius * DEBUG_SCALE);
@@ -164,6 +166,7 @@ class Target extends Element {
         this.material.setParameter('resolutionFactor', resolutionFactor);
 
         this._timelineUpdateHandle = events.on('timeline.time', (time: number) => {
+            if (Target.persistent) return;
             const scheduled = time >= this.startFrame && time <= endFrame;
             playerRenderer.enabled = scheduled;
         });
@@ -171,10 +174,14 @@ class Target extends Element {
         this._enableHandle = events.on(
             'timeline.setPlaying',
             (value: boolean) => {
-                playerRenderer.enabled = !value;
+                playerRenderer.enabled = true;
                 if (this.scene) this.scene.forceRender = true;
             }
         );
+
+        events.on('gaze.ignoreTargetTimings', (value: boolean) => {
+            Target.persistent = value;
+        });
 
         this._resizeHandle = events.on('camera.resize', () => {
             this._backgroundBuffer = events.invoke('gaze.getBackgroundBuffer');
@@ -192,6 +199,7 @@ class Target extends Element {
     add() {
         this.scene.contentRoot.addChild(this.editorEntity);
 
+        this.editorEntity.render.enabled = true;
         this.editorEntity.render.material = this.material;
         this.material.setParameter('opacity', this.opacity);
         this.material.setParameter('color', this.color.toArray());

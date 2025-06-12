@@ -1,10 +1,9 @@
-// adapted from '/src/tools/sphere-selection.ts'
-
-import { Button, Container, TextInput } from 'pcui';
+import { Button, Container, NumericInput, TextInput } from 'pcui';
 
 import { Events } from 'src/events';
 
 import { Scene } from '../../scene';
+import { SCREEN_WIDTH_METRIC, VIEWING_DISTANCE } from '../gaze-director';
 
 class SequenceSetup {
     activate: () => void;
@@ -38,13 +37,29 @@ class SequenceSetup {
             width: 180
         });
 
+        const viewingDistanceInput = new NumericInput({
+            value: VIEWING_DISTANCE,
+            precision: 0,
+            placeholder: 'Viewing Distance [cm]',
+            width: 180
+        });
+
+        const screenWidthMetricInput = new NumericInput({
+            value: SCREEN_WIDTH_METRIC,
+            precision: 1,
+            placeholder: 'Screen Width [cm]',
+            width: 160
+        });
+
         const sceneLocationInput = new TextInput({
             value: 'http://localhost:8080/',
-            placeholder: 'Scenes Source',
-            width: 240
+            placeholder: 'Scene Root',
+            width: 260
         });
 
         sequenceToolbar.append(participantInput);
+        sequenceToolbar.append(viewingDistanceInput);
+        sequenceToolbar.append(screenWidthMetricInput);
         sequenceToolbar.append(sceneLocationInput);
         sequenceToolbar.append(sequenceConfigButton);
         sequenceToolbar.append(startButton);
@@ -78,6 +93,14 @@ class SequenceSetup {
 
         participantInput.on('change', () => {
             events.fire('gaze.setParticipant', participantInput.value);
+        });
+
+        viewingDistanceInput.on('change', () => {
+            events.fire('gaze.setDeviceParams', viewingDistanceInput.value, screenWidthMetricInput.value);
+        });
+
+        screenWidthMetricInput.on('change', () => {
+            events.fire('gaze.setDeviceParams', viewingDistanceInput.value, screenWidthMetricInput.value);
         });
 
         sceneLocationInput.on('change', () => {

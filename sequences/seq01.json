@@ -1,9 +1,10 @@
 {
+    "persistentTargets": true,
     "scenes": [
         {
             "id": "scene1",
-            "filepath": "scenes/tree.ssproj",
-            "repetitions": 2,
+            "filepath": "scenes/sphere.ssproj",
+            "repetitions": 1,
             "showStimuli": true
         },
         {
