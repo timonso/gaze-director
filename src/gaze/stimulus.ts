@@ -16,7 +16,7 @@ import {
 
 import { Element, ElementType } from '../element';
 import { Serializer } from '../serializer';
-import { STIMULUS_FREQUENCY, STIMULUS_HARDNESS, STIMULUS_VISUAL_ANGLE, STMULUS_INTENSITY, TOLERANCE_ANGLE, TOLERANCE_RADIUS, visualAngleToPixels } from './gaze-director';
+import { STIMULUS_DURATION, STIMULUS_FREQUENCY, STIMULUS_HARDNESS, SUPPRESSION_LAG, STIMULUS_VISUAL_ANGLE, STMULUS_INTENSITY, SUPPRESSION_ANGLE, SUPPRESSION_RADIUS, visualAngleToRadius } from './gaze-director';
 import { GazeRecord } from './gaze-tracker';
 import * as editorShaders from './shaders/stimulus_editor-shader';
 
@@ -67,17 +67,19 @@ class Stimulus extends Element {
     _materialUpdateHandle: EventHandle;
     _gazeTrackingData: GazeRecord[] = [];
     _trackingHandle: EventHandle;
+    _suppressionLag: number = 0; // [frames]
 
-    static toleranceRadius: number = TOLERANCE_RADIUS; // [px]
-    static toleranceAngle: number = TOLERANCE_ANGLE; // [degrees]
+    static suppressionRadius: number = SUPPRESSION_RADIUS; // [px]
+    static suppressionAngle: number = SUPPRESSION_ANGLE; // [degrees]
     static defaultVisualAngle: number = STIMULUS_VISUAL_ANGLE; // [degrees]
     static defaultIntensity: number = STMULUS_INTENSITY; // [0-1]
     static defaultFrequency: number = STIMULUS_FREQUENCY; // [Hz]
     static defaultHardness: number = STIMULUS_HARDNESS; // [0-1]
+    static defaultDuration: number = STIMULUS_DURATION; // [seconds]
 
     set radius(radius: number) {
         this.visualAngle = radius;
-        this._outerRadius = visualAngleToPixels(radius);
+        this._outerRadius = visualAngleToRadius(radius);
 
         const r = (this._editorRadius = this._outerRadius * EDITOR_SCALE);
         this.editorEntity.setLocalScale(r, r, r);
@@ -89,11 +91,11 @@ class Stimulus extends Element {
     constructor(
         position: Vec3 = new Vec3(0, 0, 0),
         radius: number = STIMULUS_VISUAL_ANGLE,
-        duration: number = 5.0,
+        duration: number = STIMULUS_DURATION,
         startFrame: number = 0,
         intensity: number = STMULUS_INTENSITY,
         frequency: number = STIMULUS_FREQUENCY,
-        hardness: number = 0.2
+        hardness: number = STIMULUS_HARDNESS
     ) {
         super(ElementType.gaze_stimulus);
 
@@ -161,12 +163,13 @@ class Stimulus extends Element {
                 }
                 // update stimulus projection
                 scene.camera.worldToScreen(this.worldPosition, this.screenPosition);
+                // console.log(`Stimulus position: ${this.screenPosition.toString()}`);
 
                 // only render if the stimulus is covered by the camera frustum
                 const culled = !scene.camera.entity.camera.frustum.containsPoint(this.worldPosition);
-
                 // perform gaze proximity check
                 const suppressed = this.suppressStimulus();
+
                 this.visible = this.active && !culled && !suppressed;
             }
         });
@@ -181,7 +184,12 @@ class Stimulus extends Element {
         );
     }
 
-    suppressStimulus(toleranceRadius: number = Stimulus.toleranceRadius, toleranceAngle: number = Stimulus.toleranceAngle): boolean {
+    suppressStimulus(suppressionRadius: number = Stimulus.suppressionRadius, suppressionAngle: number = Stimulus.suppressionAngle): boolean {
+        if (this._suppressionLag > 0) {
+            this._suppressionLag--;
+            return true;
+        }
+
         const len = this._gazeTrackingData.length;
         if (len > 1) {
             const stimulusPosition = new Vec2(this.screenPosition.x, this.screenPosition.y);
@@ -189,16 +197,25 @@ class Stimulus extends Element {
             const gazeRecord = this._gazeTrackingData[len - 1];
             const fixationPosition = new Vec2(fixationRecord.x, fixationRecord.y);
             const gazePosition = new Vec2(gazeRecord.x, gazeRecord.y);
+            // console.log(`Gaze position: ${gazePosition.toString()}`);
 
             const distance = gazePosition.distance(stimulusPosition);
-            if (distance <= toleranceRadius) return true;
+            if (distance <= suppressionRadius) {
+                this._suppressionLag = SUPPRESSION_LAG;
+                return true;
+            }
 
-            const stimulusDirection = gazePosition.sub(stimulusPosition).normalize();
-            const saccadeDirection = gazePosition.sub(fixationPosition).normalize();
-            const thetaRad = Math.acos(saccadeDirection.dot(stimulusDirection));
-            const thetaDeg = thetaRad * (180 / Math.PI);
-            return thetaDeg <= toleranceAngle;
+            // const stimulusDirection = gazePosition.sub(stimulusPosition).normalize();
+            // const saccadeDirection = gazePosition.sub(fixationPosition).normalize();
+            // const thetaRad = Math.acos(saccadeDirection.dot(stimulusDirection));
+            // const thetaDeg = thetaRad * (180 / Math.PI);
+            // if (thetaDeg <= suppressionAngle) {
+            //     // this._suppressionLag = STIMULUS_SUPPRESSION_LAG;
+            //     return true;
+            // }
         }
+
+        this._suppressionLag = 0;
         return false;
     }
 

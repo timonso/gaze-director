@@ -15,9 +15,8 @@ import { Events } from 'src/events';
 
 import { Scene } from '../../scene';
 import { Splat } from '../../splat';
-import { Target } from '../target';
-import { GazeDirector, STIMULUS_VISUAL_ANGLE } from '../gaze-director';
 import { Stimulus } from '../stimulus';
+import { Target } from '../target';
 
 class TargetSelection {
     activate: () => void;

@@ -19,12 +19,18 @@ export const FOVEAL_VISUAL_ANGLE = 3.8; // [degrees]
 export const STIMULUS_VISUAL_ANGLE = 0.76; // [degrees]
 export const STMULUS_INTENSITY = 0.095; // [0-1]
 export const STIMULUS_FREQUENCY = 10.0; // [Hz]
+export const STIMULUS_DURATION = 10.0; // [seconds]
+
+// value from WebgazerJS
+export const TRACKING_ERROR = 4.17; // [degrees]
 
 export const STIMULUS_HARDNESS = 0.2; // [0-1]
-export const TOLERANCE_ANGLE = 10; // [degrees]
-export const TOLERANCE_RADIUS = 256; // [px]
+export const SUPPRESSION_LAG = 30; // [native frames]
+export const SUPPRESSION_ANGLE = 10; // [degrees]
+export const SUPPRESSION_RADIUS = 256; // [px]
+export const SUPPRESSION_MULTIPLIER = 1.0;
 
-export const VIEWING_DISTANCE = 60; // [cm]
+export const VIEWING_DISTANCE = 75; // [cm]
 export const SCREEN_WIDTH_METRIC = 30; // [cm]
 
 class AddStimulusOp {
@@ -83,6 +89,7 @@ class GazeDirector {
 
     static screenWidthMetric: number = SCREEN_WIDTH_METRIC; // [cm]
     static viewingDistance: number = VIEWING_DISTANCE; // [cm]
+    static suppressionVisualAngle = FOVEAL_VISUAL_ANGLE + 0.5 * TRACKING_ERROR;
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
@@ -116,6 +123,7 @@ class GazeDirector {
 
                 Stimulus.defaultVisualAngle = radius;
                 Stimulus.defaultFrequency = frequency;
+                Stimulus.defaultDuration = duration;
                 Stimulus.defaultHardness = hardness;
                 Stimulus.defaultIntensity = intensity;
             }
@@ -149,14 +157,17 @@ class GazeDirector {
             }
         );
 
-        events.function('gaze.visualAngleToPixels', (visualAngle: number) => {
-            return visualAngleToPixels(visualAngle, GazeDirector.viewingDistance);
-        });
-
         events.on('gaze.setDeviceParams', (distance: number, screenWidthMetric: number) => {
             GazeDirector.viewingDistance = distance;
             GazeDirector.screenWidthMetric = screenWidthMetric;
-            Stimulus.toleranceRadius = visualAngleToPixels(FOVEAL_VISUAL_ANGLE, distance, screenWidthMetric);
+
+            Stimulus.suppressionRadius = visualAngleToRadius(
+                GazeDirector.suppressionVisualAngle,
+                distance,
+                screenWidthMetric,
+                window.devicePixelRatio,
+                true
+            );
         }
         );
 
@@ -167,32 +178,48 @@ class GazeDirector {
         events.function('gaze.allTargets', () => {
             return scene.getElementsByType(ElementType.gaze_target);
         });
+
+        // add debug stimulus for suppression region visualization
+        events.fire(
+            'gaze.addStimulus',
+            new Vec3(0, 0, 0),
+            GazeDirector.suppressionVisualAngle,
+            STIMULUS_DURATION,
+            0,
+            STMULUS_INTENSITY,
+            STIMULUS_FREQUENCY,
+            1.0
+        );
     }
 }
 
-function visualAngleToPixels(
+function visualAngleToRadius(
     visualAngle: number,
     viewingDistance: number = GazeDirector.viewingDistance,
-    screenWidthMetric: number = GazeDirector.screenWidthMetric
+    screenWidthMetric: number = GazeDirector.screenWidthMetric,
+    pixelRatio: number = 1.0,
+    log: boolean = false
 ): number {
     const visualAngleRad = (visualAngle * Math.PI) / 180;
     const diameter = 2 * viewingDistance * Math.tan(visualAngleRad / 2);
     const radius = diameter / 2;
 
-    const pxPerCm = window.devicePixelRatio * (screen.width / screenWidthMetric);
+    const pxPerCm = pixelRatio * (screen.width / screenWidthMetric);
     const radiusPx = Math.ceil(radius * pxPerCm);
 
-    console.log(
-        'Converted visual angle',
-        visualAngle,
-        'deg to screen space:',
-        radius,
-        'cm ~',
-        radiusPx,
-        'px'
-    );
+    if (log) {
+        console.log(
+            'Converted visual angle',
+            visualAngle,
+            'deg to screen space:',
+            radius,
+            'cm ~',
+            radiusPx,
+            'px'
+        );
+    }
 
     return radiusPx;
 }
 
-export { GazeDirector, visualAngleToPixels };
+export { GazeDirector, visualAngleToRadius };
