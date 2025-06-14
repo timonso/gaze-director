@@ -10,6 +10,7 @@ import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
 import crossVector from '../images/cross.svg';
+import { GazeDirector } from '../gaze-director';
 
 const GRID_SIZE = 20; // 5 columns x 4 rows
 
@@ -17,6 +18,7 @@ class CalibrationScreen {
     calibrated = false;
     blackoutScreen: Entity;
     _grid: HTMLDivElement;
+    _cross: HTMLImageElement;
     _overlay: HTMLDivElement;
     _calibratedCount = 0;
 
@@ -67,7 +69,7 @@ class CalibrationScreen {
             events.fire('gaze.toggleCalibrationScreen');
         });
 
-        const cross = document.createElement('img');
+        const cross = (this._cross = document.createElement('img'));
         cross.src = crossVector;
         cross.style.position = 'absolute';
         cross.style.width = '48px';
@@ -125,6 +127,53 @@ class CalibrationScreen {
             events.fire('gaze.showCalibrationScreen', false);
             events.fire('gaze.stopTracking');
         });
+
+        events.on('gaze.measureAccuracy', () => {
+            this.measureAccuracy(events, 30, 5000);
+        });
+    }
+
+    // adapted from https://github.com/brownhci/WebGazer/blob/master/www/js/precision_calculation.js
+    measureAccuracy(events: Events, frameRate: number = 30, duration: number = 5000): void {
+        const lastPredictions: Vec2[] = [];
+        const centerPosition = new Vec2(
+            this._overlay.clientWidth / 2,
+            this._overlay.clientHeight / 2);
+
+        const updateHandle = setInterval(async () => {
+            const prediction = await events.invoke('gaze.getCurrentTrackingPosition');
+            if (prediction) {
+                lastPredictions.push(prediction);
+            }
+        }
+        , 1000 / frameRate);
+
+        this._cross.style.transform = 'translate(-50%, -50%) scale(1.5)';
+
+        setTimeout(() => {
+            clearInterval(updateHandle);
+
+            const distances = [];
+            for (let i = 0; i < lastPredictions.length; i++) {
+                const prediction = lastPredictions[i];
+                if (prediction) {
+                    const distance = centerPosition.distance(prediction);
+                    distances.push(distance);
+                }
+            }
+
+            if (distances.length > 0) {
+                const averageDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
+                // negative values indicate errors higher than the default tracking error
+                const relativeAccuracy = 100 * Math.max(1 - (averageDistance / GazeDirector.trackingError));
+                console.log(`Average gaze distance from center: ${averageDistance.toFixed(0)}px`);
+                console.log(`Measured accuracy: ${relativeAccuracy.toFixed(0)}%`);
+            } else {
+                console.log('No predictions available for accuracy measurement.');
+            }
+
+            this._cross.style.transform = 'translate(-50%, -50%)';
+        }, duration);
     }
 
     generateCalibrationGrid(): HTMLDivElement {

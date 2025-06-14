@@ -5,6 +5,7 @@ import { Scene } from 'src/scene';
 
 // @ts-ignore
 import webgazer from '../webgazer/index.mjs';
+import { Vec2 } from 'playcanvas';
 
 declare global {
     interface Window {
@@ -51,6 +52,11 @@ class GazeTracker {
 
         events.function('gaze.getTrackingData', () => {
             return this.currentRecordedData;
+        });
+
+        events.function('gaze.getCurrentTrackingPosition', async () => {
+            const position = await this.getCurrentTrackingPosition();
+            return position;
         });
 
         // TODO: call at the end of scene sequence
@@ -106,9 +112,9 @@ class GazeTracker {
         }, 1000);
     }
 
-    async getCurrentGazePosition() : Promise<{ currentX: number; currentY: number; }> {
+    async getCurrentTrackingPosition() : Promise<Vec2> {
         const prediction = await this.gazeTracker.getCurrentPrediction();
-        return { currentX: prediction.x, currentY: prediction.y };
+        return new Vec2(prediction.x, prediction.y);
     }
 
     saveGazeRecording(sceneData: SceneRecord | null = null) {

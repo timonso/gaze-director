@@ -48,8 +48,8 @@ class StimulusSelection {
         const radiusSlider = new NumericInput({
             precision: 3,
             value: stimulus.visualAngle,
-            placeholder: 'Radius [deg]',
-            width: 120,
+            placeholder: 'Diameter [deg]',
+            width: 140,
             min: 0.0
         });
         const intensitySlider = new NumericInput({

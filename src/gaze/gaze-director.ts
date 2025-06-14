@@ -28,7 +28,6 @@ export const STIMULUS_HARDNESS = 0.2; // [0-1]
 export const SUPPRESSION_LAG = 30; // [native frames]
 export const SUPPRESSION_ANGLE = 10; // [degrees]
 export const SUPPRESSION_RADIUS = 256; // [px]
-export const SUPPRESSION_MULTIPLIER = 1.0;
 
 export const VIEWING_DISTANCE = 75; // [cm]
 export const SCREEN_WIDTH_METRIC = 30; // [cm]
@@ -89,7 +88,8 @@ class GazeDirector {
 
     static screenWidthMetric: number = SCREEN_WIDTH_METRIC; // [cm]
     static viewingDistance: number = VIEWING_DISTANCE; // [cm]
-    static suppressionVisualAngle = FOVEAL_VISUAL_ANGLE + 0.5 * TRACKING_ERROR;
+    static suppressionVisualAngle: number = FOVEAL_VISUAL_ANGLE + 0.5 * TRACKING_ERROR; // [degrees]
+    static trackingError: number = 0; // [px]
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
@@ -157,19 +157,7 @@ class GazeDirector {
             }
         );
 
-        events.on('gaze.setDeviceParams', (distance: number, screenWidthMetric: number) => {
-            GazeDirector.viewingDistance = distance;
-            GazeDirector.screenWidthMetric = screenWidthMetric;
-
-            Stimulus.suppressionRadius = visualAngleToRadius(
-                GazeDirector.suppressionVisualAngle,
-                distance,
-                screenWidthMetric,
-                window.devicePixelRatio,
-                true
-            );
-        }
-        );
+        events.on('gaze.setDeviceParams', (distance: number, screenWidthMetric: number) => this.setDeviceParams(distance, screenWidthMetric));
 
         events.function('gaze.allStimuli', () => {
             return scene.getElementsByType(ElementType.gaze_stimulus);
@@ -178,6 +166,8 @@ class GazeDirector {
         events.function('gaze.allTargets', () => {
             return scene.getElementsByType(ElementType.gaze_target);
         });
+
+        this.setDeviceParams();
 
         // add debug stimulus for suppression region visualization
         events.fire(
@@ -189,6 +179,30 @@ class GazeDirector {
             STMULUS_INTENSITY,
             STIMULUS_FREQUENCY,
             1.0
+        );
+    }
+
+    setDeviceParams(
+        distance: number = VIEWING_DISTANCE,
+        screenWidthMetric: number = SCREEN_WIDTH_METRIC
+    ): void {
+        GazeDirector.viewingDistance = distance;
+        GazeDirector.screenWidthMetric = screenWidthMetric;
+
+        GazeDirector.trackingError = visualAngleToRadius(
+            TRACKING_ERROR,
+            distance,
+            screenWidthMetric,
+            1.0,
+            true
+        );
+
+        Stimulus.suppressionRadius = visualAngleToRadius(
+            GazeDirector.suppressionVisualAngle,
+            distance,
+            screenWidthMetric,
+            1.0,
+            true
         );
     }
 }

@@ -142,7 +142,7 @@ class Stimulus extends Element {
                 [`s: ${this.startFrame}`,
                     `d: ${this.duration}`,
                     `e: ${endFrame}`,
-                    `a: ${this.visualAngle}`,
+                    `v: ${this.visualAngle}`,
                     `r: ${this.radius}`,
                     `i: ${this.intensity}`,
                     `h: ${this.hardness}`,
@@ -163,7 +163,6 @@ class Stimulus extends Element {
                 }
                 // update stimulus projection
                 scene.camera.worldToScreen(this.worldPosition, this.screenPosition);
-                // console.log(`Stimulus position: ${this.screenPosition.toString()}`);
 
                 // only render if the stimulus is covered by the camera frustum
                 const culled = !scene.camera.entity.camera.frustum.containsPoint(this.worldPosition);
@@ -197,7 +196,6 @@ class Stimulus extends Element {
             const gazeRecord = this._gazeTrackingData[len - 1];
             const fixationPosition = new Vec2(fixationRecord.x, fixationRecord.y);
             const gazePosition = new Vec2(gazeRecord.x, gazeRecord.y);
-            // console.log(`Gaze position: ${gazePosition.toString()}`);
 
             const distance = gazePosition.distance(stimulusPosition);
             if (distance <= suppressionRadius) {

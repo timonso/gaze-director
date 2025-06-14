@@ -105,6 +105,7 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['_', '-'], { event: 'gaze.toggleBlackoutScreen' });
     shortcuts.register(['{'], { event: 'gaze.startCalibration', shift: true });
     shortcuts.register(['}'], { event: 'gaze.stopCalibration', shift: true });
+    shortcuts.register(['/'], { event: 'gaze.measureAccuracy' });
     shortcuts.register(['['], { event: 'gaze.startTracking' });
     shortcuts.register([']'], { event: 'gaze.stopTracking' });
     shortcuts.register(['.'], { event: 'gaze.removeTrackingDot' });
