@@ -22,12 +22,11 @@ const fragmentShader = /* glsl */ `
     varying vec3 normal;
     varying vec3 worldPosition;
 
-    vec3 uLightColor = vec3(1.0, 1.0, 1.0);
-    
-    vec3 diffuseColor = vec3(1.0, 1.0, 1.0);
+    vec3 lightColors[2];
+    vec3 diffuseColor = vec3(0.6, 0.6, 0.6);
     vec3 specularColor = vec3(1.0, 1.0, 1.0);
     float samplingLevel = 0.0;
-    
+
     uniform sampler2D backgroundBuffer;
     uniform vec3 cameraPosition;
     uniform vec3 lightPosition;
@@ -35,26 +34,41 @@ const fragmentShader = /* glsl */ `
     uniform float opacity;
     uniform vec4 color;
     uniform int resolutionFactor;
-    
+
     void main() {
         vec3 normal = normalize(normal);
         vec3 viewDirection = normalize(cameraPosition - worldPosition);
-        vec3 lightDirection = normalize(lightPosition - worldPosition);
-        vec3 outboundDirecton = reflect(-lightDirection, normal);
 
-        float Kd = max(dot(normal, lightDirection), 0.0);
-        float Ks = pow(max(dot(viewDirection, outboundDirecton), 0.0), specularFactor);
-        vec3 diffuse = Kd * diffuseColor * uLightColor;
-        vec3 specular = Ks * specularColor * uLightColor;
+        vec3 lightPositions[2];
+        lightPositions[0] = lightPosition;
+        lightPositions[1] = -lightPosition;
+
+        lightColors[0] = vec3(1.0, 1.0, 1.0);
+        lightColors[1] = vec3(1.0, 1.0, 1.0);
+
+        vec3 diffuse = vec3(0.0);
+        vec3 specular = vec3(0.0);
+
+        for (int i = 0; i < 2; i++) {
+            vec3 lightDirection = normalize(lightPositions[i] - worldPosition);
+            vec3 reflectDirection = reflect(-lightDirection, normal);
+
+            float Kd = max(dot(normal, lightDirection), 0.0);
+            float Ks = pow(max(dot(viewDirection, reflectDirection), 0.0), specularFactor);
+
+            diffuse += Kd * diffuseColor * lightColors[i];
+            specular += Ks * specularColor * lightColors[i];
+        }
+
         vec3 ambient = 0.1 * color.rgb;
         vec3 phongColor = diffuse + specular + ambient;
 
         vec2 texCoord = gl_FragCoord.xy / vec2(textureSize(backgroundBuffer, 0) * resolutionFactor);
-        vec4 splatColor = textureLod(backgroundBuffer, texCoord, samplingLevel);
+        vec4 backgroundColor = textureLod(backgroundBuffer, texCoord, samplingLevel);
 
-        vec3 compositeColor = mix(splatColor.rgb, phongColor.rgb, opacity);
+        vec3 compositeColor = mix(backgroundColor.rgb, phongColor.rgb, opacity);
 
-        gl_FragColor = vec4(compositeColor, splatColor.a);
+        gl_FragColor = vec4(compositeColor, backgroundColor.a);
     }
 `;
 

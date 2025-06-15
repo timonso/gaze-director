@@ -175,7 +175,7 @@ class TargetSelection {
             target.specularFactor = specularSlider.value;
         });
         lightPositionPicker.on('change', () => {
-            target.lightPosition = new Vec3(...lightPositionPicker.value);
+            target.lightPosition = new Vec3(lightPositionPicker.value);
         });
 
         events.on(
