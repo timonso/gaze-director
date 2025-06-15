@@ -74,6 +74,7 @@ class SceneSequencer {
                             modulated: scenes[idx].showStimuli
                         };
 
+                        events.fire('gaze.pauseTracking');
                         events.fire('gaze.saveTrackingData', sceneRecord);
                         setTimeout(() => events.fire('gaze.clearTrackingData'), 1000);
                         console.log('Tracking data saved.');
@@ -102,8 +103,8 @@ class SceneSequencer {
         events.fire('gaze.showCalibrationScreen', true);
         this.loadScene(scenes[idx], events)
         .then(() => {
-            console.log(`--- Scene #${idx} loaded successfully: ${scenes[idx].id} ---`);
-            console.log(`Playing scene #${idx}`);
+            console.log(`--- Scene #${idx + 1} loaded successfully: ${scenes[idx].id} ---`);
+            console.log(`Playing scene #${idx + 1}`);
 
             events.fire('gaze.showStimuliPlayer', scenes[idx].showStimuli);
             this.currentSceneDuration = events.invoke('timeline.frames') - 5;
@@ -140,7 +141,7 @@ class SceneSequencer {
     }
 
     stopSequence(events: Events) {
-        console.log(`=== Sequence for participant ${this.participantId} stopped at scene ${this.currentSceneIndex} ===`);
+        console.log(`=== Sequence for participant ${this.participantId} stopped at Scene #${this.currentSceneIndex} ===`);
         this.enabled = false;
         this.currentSceneIndex = 0;
         this.currentSceneDuration = 0;

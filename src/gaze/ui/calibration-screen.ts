@@ -9,8 +9,8 @@ import {
 import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
-import crossVector from '../images/cross.svg';
 import { GazeDirector } from '../gaze-director';
+import crossVector from '../images/cross.svg';
 
 const GRID_SIZE = 20; // 5 columns x 4 rows
 

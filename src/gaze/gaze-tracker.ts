@@ -1,11 +1,12 @@
 // @ts-ignore
 
+import { Vec2 } from 'playcanvas';
+
 import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
 // @ts-ignore
 import webgazer from '../webgazer/index.mjs';
-import { Vec2 } from 'playcanvas';
 
 declare global {
     interface Window {
@@ -40,6 +41,14 @@ class GazeTracker {
 
         events.on('gaze.stopTracking', () => {
             if (this._recording) this.stopGazeTracking();
+        });
+
+        events.on('gaze.pauseTracking', () => {
+            if (this._recording) this.gazeTracker.pause();
+        });
+
+        events.on('gaze.resumeTracking', () => {
+            if (this._recording) this.gazeTracker.resume();
         });
 
         events.on('gaze.saveTrackingData', (sceneData?: SceneRecord) => {

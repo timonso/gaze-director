@@ -39,7 +39,7 @@ class ScenePlayer {
         events.on('gaze.playScene', () => {
             this._isPlaying = true;
             scene.gizmoLayer.enabled = false;
-            events.fire('gaze.showCalibrationScreen', true);
+            events.fire('gaze.resumeTracking');
             // TODO: re-enable for production
             // events.fire('gaze.removeTrackingDot');
             events.fire('gaze.showCalibrationScreen', false);
