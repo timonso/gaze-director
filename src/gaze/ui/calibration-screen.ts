@@ -164,10 +164,10 @@ class CalibrationScreen {
 
             if (distances.length > 0) {
                 const averageDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
-                // negative values indicate errors higher than the default tracking error
-                const relativeAccuracy = 100 * Math.max(1 - (averageDistance / GazeDirector.trackingError));
+                // values >100% indicate errors higher than the default tracking error
+                const relativeAccuracy = 100 * (averageDistance / GazeDirector.trackingError);
                 console.log(`Average gaze distance from center: ${averageDistance.toFixed(0)}px`);
-                console.log(`Measured accuracy: ${relativeAccuracy.toFixed(0)}%`);
+                console.log(`Relative tracking error: ${relativeAccuracy.toFixed(0)}%`);
             } else {
                 console.log('No predictions available for accuracy measurement.');
             }

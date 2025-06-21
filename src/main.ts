@@ -110,7 +110,8 @@ const initShortcuts = (events: Events) => {
     shortcuts.register([']'], { event: 'gaze.stopTracking' });
     shortcuts.register(['.'], { event: 'gaze.removeTrackingDot' });
     shortcuts.register([' '], { event: 'gaze.toggleScene' });
-    shortcuts.register(['Enter'], { event: 'gaze.continueSequence' });
+    // shortcuts.register(['Enter'], { event: 'gaze.continueSequence' });
+    shortcuts.register(['Q', 'q'], { event: 'gaze.getCurrentCameraTransform' });
 
     return shortcuts;
 };

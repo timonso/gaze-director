@@ -1,4 +1,4 @@
-import { Asset, Color, Vec3 } from 'playcanvas';
+import { Asset, Color, Mat4, math, Vec2, Vec3 } from 'playcanvas';
 
 import { EditHistory } from 'src/edit-history';
 import { ElementType } from 'src/element';
@@ -88,7 +88,8 @@ class GazeDirector {
 
     static screenWidthMetric: number = SCREEN_WIDTH_METRIC; // [cm]
     static viewingDistance: number = VIEWING_DISTANCE; // [cm]
-    static suppressionVisualAngle: number = FOVEAL_VISUAL_ANGLE + 0.5 * TRACKING_ERROR; // [degrees]
+    static suppressionVisualAngle: number =
+        FOVEAL_VISUAL_ANGLE + 0.5 * TRACKING_ERROR; // [degrees]
     static trackingError: number = 0; // [px]
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
@@ -157,7 +158,18 @@ class GazeDirector {
             }
         );
 
-        events.on('gaze.setDeviceParams', (distance: number, screenWidthMetric: number) => this.setDeviceParams(distance, screenWidthMetric));
+        events.on('gaze.getCurrentCameraTransform', () => {
+            this.getCurrentCameraTransform(scene);
+        });
+
+        events.on('gaze.loadCameraData', (cameraData) => {
+            this.loadCameraData(scene, cameraData);
+        });
+
+        events.on(
+            'gaze.setDeviceParams',
+            (distance: number, screenWidthMetric: number) => this.setDeviceParams(distance, screenWidthMetric)
+        );
 
         events.function('gaze.allStimuli', () => {
             return scene.getElementsByType(ElementType.gaze_stimulus);
@@ -170,16 +182,16 @@ class GazeDirector {
         this.setDeviceParams();
 
         // add debug stimulus for suppression region visualization
-        events.fire(
-            'gaze.addStimulus',
-            new Vec3(0, 0, 0),
-            GazeDirector.suppressionVisualAngle,
-            STIMULUS_DURATION,
-            0,
-            STMULUS_INTENSITY,
-            STIMULUS_FREQUENCY,
-            1.0
-        );
+        // events.fire(
+        //     'gaze.addStimulus',
+        //     new Vec3(0, 0, 0),
+        //     GazeDirector.suppressionVisualAngle,
+        //     STIMULUS_DURATION,
+        //     0,
+        //     STMULUS_INTENSITY,
+        //     STIMULUS_FREQUENCY,
+        //     1.0
+        // );
     }
 
     setDeviceParams(
@@ -204,6 +216,68 @@ class GazeDirector {
             1.0,
             true
         );
+    }
+
+    // adapted from 'loadCameraPoses' in '/src/file-handler.ts'
+    loadCameraData(scene: Scene, cameraData: any) {
+        const fovs: Vec2[] = [];
+        console.log('Loading camera data:', cameraData);
+        for (let i = 0; i < cameraData.frames.length; i++) {
+            const frame = cameraData.frames[i];
+            const m = frame.transform_matrix;
+
+            const centerPosition = new Vec3(m[0][3], m[1][3], m[2][3]);
+            const targetPosition = new Vec3(m[0][2], m[1][2], m[2][2]);
+
+            const viewDirection = targetPosition
+            .mulScalar(-1)
+            .add(centerPosition);
+
+            scene.events.fire('camera.addPose', {
+                name: i,
+                frame: i,
+                position: new Vec3(
+                    -centerPosition.x,
+                    -centerPosition.y,
+                    centerPosition.z
+                ),
+                target: new Vec3(
+                    -viewDirection.x,
+                    -viewDirection.y,
+                    viewDirection.z
+                )
+            });
+
+            const focalLength: Vec2 = new Vec2(frame.fl_x, frame.fl_y);
+            const dimensions: Vec2 = new Vec2(frame.w, frame.h);
+            const fieldOfViewHorizontal =
+                2 *
+                Math.atan(dimensions.x / (2 * focalLength.x)) *
+                math.RAD_TO_DEG;
+            const fieldOfViewVertical =
+                2 *
+                Math.atan(dimensions.y / (2 * focalLength.y)) *
+                math.RAD_TO_DEG;
+            const fieldOfView: Vec2 = new Vec2(
+                fieldOfViewHorizontal,
+                fieldOfViewVertical
+            );
+            fovs.push(fieldOfView);
+        }
+
+        const avgFov = fovs
+        .reduce((acc, fov) => acc.add(fov), new Vec2(0, 0))
+        .divScalar(fovs.length);
+        console.log('Average FOV:', avgFov);
+        scene.events.fire('camera.setFov', avgFov.x);
+    }
+
+    getCurrentCameraTransform(scene: Scene) {
+        const position: Vec3 = scene.camera.entity.getPosition();
+        const target: Vec3 = scene.camera.entity.getEulerAngles();
+        console.log('Current camera position:', position);
+        console.log('Current camera target:', target);
+        return { position, target };
     }
 }
 

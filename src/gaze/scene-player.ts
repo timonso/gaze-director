@@ -39,9 +39,10 @@ class ScenePlayer {
         events.on('gaze.playScene', () => {
             this._isPlaying = true;
             scene.gizmoLayer.enabled = false;
+            document.body.style.cursor = 'none';
             events.fire('gaze.resumeTracking');
             // TODO: re-enable for production
-            // events.fire('gaze.removeTrackingDot');
+            events.fire('gaze.removeTrackingDot');
             events.fire('gaze.showCalibrationScreen', false);
             events.fire('gaze.setInterfaceHidden', true);
             events.fire('grid.setVisible', false);
@@ -55,6 +56,7 @@ class ScenePlayer {
         events.on('gaze.stopScene', () => {
             this._isPlaying = false;
             scene.gizmoLayer.enabled = true;
+            document.body.style.cursor = 'default';
             events.fire('gaze.setInterfaceHidden', false);
             events.fire('grid.visible', true);
             events.fire('camera.setBound', true);

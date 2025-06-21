@@ -31,6 +31,11 @@ class SequenceSetup {
             class: 'select-toolbar-button'
         });
 
+        const cameraDataButton = new Button({
+            text: 'Load Camera Data',
+            class: 'select-toolbar-button'
+        });
+
         const participantInput = new TextInput({
             value: 'default',
             placeholder: 'Participant ID',
@@ -62,6 +67,7 @@ class SequenceSetup {
         sequenceToolbar.append(screenWidthMetricInput);
         sequenceToolbar.append(sceneLocationInput);
         sequenceToolbar.append(sequenceConfigButton);
+        sequenceToolbar.append(cameraDataButton);
         sequenceToolbar.append(startButton);
 
         canvasContainer.append(sequenceToolbar);
@@ -85,6 +91,26 @@ class SequenceSetup {
                         events.fire('gaze.loadSequence', sequenceData);
                     } catch (err) {
                         console.error('Could not read sequence configuration file:', err);
+                    }
+                }
+            };
+            input.click();
+        });
+
+        cameraDataButton.dom.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,application/json';
+            input.onchange = async (e: Event) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                    const content = await file.text();
+                    try {
+                        const cameraData = JSON.parse(content);
+                        events.fire('gaze.loadCameraData', cameraData);
+                    } catch (err) {
+                        console.error('Could not read camera configuration file:', err);
                     }
                 }
             };
