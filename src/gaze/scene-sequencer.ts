@@ -103,8 +103,8 @@ class SceneSequencer {
         events.fire('gaze.showCalibrationScreen', true);
         this.loadScene(scenes[idx], events)
         .then(() => {
-            console.log(`--- Scene #${idx + 1} loaded successfully: ${scenes[idx].id} ---`);
-            console.log(`Playing scene #${idx + 1}`);
+            console.log(`--- Scene #${idx} loaded successfully: ${scenes[idx].id} ---`);
+            console.log(`Playing scene #${idx}`);
 
             events.fire('gaze.showStimuliPlayer', scenes[idx].showStimuli);
             this.currentSceneDuration = events.invoke('timeline.frames') - 5;

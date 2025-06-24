@@ -7,6 +7,7 @@ import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { initFileHandler } from './file-handler';
 import { GazeDirector } from './gaze/gaze-director';
+import { PoseSelection } from './gaze/tools/pose-selection';
 import { SequenceSetup } from './gaze/tools/sequence-setup';
 import { StimulusSelection } from './gaze/tools/stimulus-selection';
 import { TargetSelection } from './gaze/tools/target-selection';
@@ -111,7 +112,7 @@ const initShortcuts = (events: Events) => {
     shortcuts.register(['.'], { event: 'gaze.removeTrackingDot' });
     shortcuts.register([' '], { event: 'gaze.toggleScene' });
     // shortcuts.register(['Enter'], { event: 'gaze.continueSequence' });
-    shortcuts.register(['Q', 'q'], { event: 'gaze.getCurrentCameraTransform' });
+    shortcuts.register(['Q', 'q'], { event: 'gaze.getCurrentPoseDeviation' });
 
     return shortcuts;
 };
@@ -278,6 +279,7 @@ const main = async () => {
     const gazeTracker = new GazeDirector(scene, events, editHistory);
     toolManager.register('gaze.stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('gaze.targetSelection', new TargetSelection(scene, events, editorUI.canvasContainer));
+    toolManager.register('gaze.poseSelection', new PoseSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('gaze.sequenceSetup', new SequenceSetup(scene, events, editorUI.canvasContainer));
 
     // load async models

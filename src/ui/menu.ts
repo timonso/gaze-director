@@ -299,6 +299,20 @@ class Menu extends Container {
         }, {
             // separator
         }, {
+            text: 'Load Training Poses',
+            onSelect: async () => await events.fire('gaze.loadCameraData')
+        }, {
+            text: 'Reconstruct Training Poses',
+            onSelect: async () => await events.fire('gaze.reconstructTrainingTrajectory')
+        }, {
+            text: 'Reconstruct Single Pose',
+            onSelect: async () => await events.fire('gaze.reconstructTrainingPose')
+        }, {
+            text: 'Add Training Pose',
+            onSelect: async () => await events.fire('tool.gaze.poseSelection')
+        }, {
+            // separator
+        }, {
             text: 'Setup Sequence',
             onSelect: async () => await events.fire('tool.gaze.sequenceSetup')
         }]);

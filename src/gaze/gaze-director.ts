@@ -32,6 +32,15 @@ export const SUPPRESSION_RADIUS = 256; // [px]
 export const VIEWING_DISTANCE = 75; // [cm]
 export const SCREEN_WIDTH_METRIC = 30; // [cm]
 
+type CameraPose = {
+    id: number;
+    center: Vec3;
+    target: Vec3;
+    direction: Vec3;
+    roll: number;
+    fov: Vec2;
+};
+
 class AddStimulusOp {
     name: 'addStimulus';
     scene: Scene;
@@ -92,6 +101,11 @@ class GazeDirector {
         FOVEAL_VISUAL_ANGLE + 0.5 * TRACKING_ERROR; // [degrees]
     static trackingError: number = 0; // [px]
 
+    static cameraPoses: CameraPose[] = [];
+    static cameraFov: Vec2 = new Vec2(60, 40); // [degrees]
+    static averageFov: Vec2 = new Vec2(60, 40); // [degrees]
+    static averageDistance: number = 0;
+
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
         this.targetRenderer = new TargetRenderer(scene, events);
@@ -99,6 +113,9 @@ class GazeDirector {
         this.gazeTracker = new GazeTracker(scene, events);
         this.scenePlayer = new ScenePlayer(scene, events);
         this.sceneSequencer = new SceneSequencer(scene, events);
+
+        // disable splat center overlay on startup
+        events.fire('camera.toggleOverlay');
 
         events.on(
             'gaze.addStimulus',
@@ -162,8 +179,38 @@ class GazeDirector {
             this.getCurrentCameraTransform(scene);
         });
 
-        events.on('gaze.loadCameraData', (cameraData) => {
-            this.loadCameraData(scene, cameraData);
+        events.on('gaze.getCurrentPoseDeviation', () => {
+            this.getCurrentPoseDeviation(scene);
+        });
+
+        events.on('gaze.loadCameraData', () => {
+            let cameraData: any;
+
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,application/json';
+            input.onchange = async (e: Event) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                    const content = await file.text();
+                    try {
+                        cameraData = JSON.parse(content);
+                        this.loadCameraData(cameraData);
+                    } catch (err) {
+                        console.error('Could not read camera configuration file:', err);
+                    }
+                }
+            };
+
+            input.click();
+        });
+
+        events.on('gaze.reconstructTrainingTrajectory', () => {
+            this.reconstructTrainingTrajectory(scene);
+        });
+
+        events.on('gaze.reconstructTrainingPose', (id?: number) => {
+            this.reconstructTrainingPose(scene, id);
         });
 
         events.on(
@@ -219,34 +266,19 @@ class GazeDirector {
     }
 
     // adapted from 'loadCameraPoses' in '/src/file-handler.ts'
-    loadCameraData(scene: Scene, cameraData: any) {
-        const fovs: Vec2[] = [];
+    loadCameraData(cameraData: any) {
         console.log('Loading camera data:', cameraData);
+        GazeDirector.cameraPoses.length = 0;
+        GazeDirector.cameraPoses.push(undefined);
+
         for (let i = 0; i < cameraData.frames.length; i++) {
             const frame = cameraData.frames[i];
             const m = frame.transform_matrix;
 
-            const centerPosition = new Vec3(m[0][3], m[1][3], m[2][3]);
-            const targetPosition = new Vec3(m[0][2], m[1][2], m[2][2]);
+            const centerPosition = new Vec3(-m[0][3], -m[1][3], m[2][3]);
+            const targetPosition = new Vec3(m[0][2], m[1][2], -m[2][2]);
 
-            const viewDirection = targetPosition
-            .mulScalar(-1)
-            .add(centerPosition);
-
-            scene.events.fire('camera.addPose', {
-                name: i,
-                frame: i,
-                position: new Vec3(
-                    -centerPosition.x,
-                    -centerPosition.y,
-                    centerPosition.z
-                ),
-                target: new Vec3(
-                    -viewDirection.x,
-                    -viewDirection.y,
-                    viewDirection.z
-                )
-            });
+            const direction = targetPosition.clone().add(centerPosition);
 
             const focalLength: Vec2 = new Vec2(frame.fl_x, frame.fl_y);
             const dimensions: Vec2 = new Vec2(frame.w, frame.h);
@@ -262,22 +294,121 @@ class GazeDirector {
                 fieldOfViewHorizontal,
                 fieldOfViewVertical
             );
-            fovs.push(fieldOfView);
+
+            GazeDirector.cameraPoses.push({
+                id: i + 1,
+                center: centerPosition,
+                target: targetPosition,
+                direction: direction,
+                roll: 0,
+                fov: fieldOfView
+            });
         }
 
+        const minDistances: number[] = [];
+
+        for (const pose of GazeDirector.cameraPoses) {
+            if (!pose) continue;
+            let minDistance = Infinity;
+            for (const otherPose of GazeDirector.cameraPoses) {
+                if (!otherPose || otherPose.id === pose.id) continue;
+                const dist = pose.center.distance(otherPose.center);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                }
+            }
+            minDistances.push(minDistance);
+        }
+
+        GazeDirector.averageDistance =
+        minDistances.reduce((acc, dist) => acc + dist, 0) / minDistances.length;
+
+        console.log(
+            'Average training pose distance:',
+            GazeDirector.averageDistance
+        );
+    }
+
+    reconstructTrainingTrajectory(scene: Scene) {
+        const fovs: Vec2[] = [];
+        for (const pose of GazeDirector.cameraPoses) {
+            if (!pose) continue;
+            fovs.push(pose.fov);
+            scene.events.fire('camera.addPose', {
+                name: `training_${pose.id}`,
+                frame: pose.id,
+                position: pose.center,
+                target: pose.direction
+            });
+        }
         const avgFov = fovs
         .reduce((acc, fov) => acc.add(fov), new Vec2(0, 0))
         .divScalar(fovs.length);
-        console.log('Average FOV:', avgFov);
+
+        console.log('Average training pose FOV:', avgFov);
+
         scene.events.fire('camera.setFov', avgFov.x);
+        scene.events.fire('timeline.frames', GazeDirector.cameraPoses.length);
+    }
+
+    reconstructTrainingPose(
+        scene: Scene,
+        id?: number
+    ) {
+        const currentFrame = scene.events.invoke('timeline.frame');
+        if (id === undefined) {
+            id = currentFrame;
+        }
+        const pose = GazeDirector.cameraPoses[id];
+        scene.events.fire('camera.addPose', {
+            name: `pose_${id}`,
+            frame: currentFrame,
+            position: pose.center,
+            target: pose.direction
+        });
+        scene.events.fire('camera.setFov', pose.fov.x);
+        // scene.camera.roll = pose.roll;
+        // scene.forceRender = true;
+
     }
 
     getCurrentCameraTransform(scene: Scene) {
-        const position: Vec3 = scene.camera.entity.getPosition();
-        const target: Vec3 = scene.camera.entity.getEulerAngles();
-        console.log('Current camera position:', position);
-        console.log('Current camera target:', target);
-        return { position, target };
+        const position = scene.camera.entity.getPosition();
+        const target = scene.camera.focalPoint;
+        const direction = (target.clone().sub(position)).normalize();
+
+        console.log('Current view pose:', position, direction);
+
+        return { position, direction };
+    }
+
+    getCurrentPoseDeviation(scene: Scene) {
+        const { position, direction: currentPoseDirection } = this.getCurrentCameraTransform(scene);
+        let minDistance = Infinity;
+        let closestPoseId = -1;
+        let closestPoseDirection = new Vec3(0, 0, 0);
+        let closestPosePosition = new Vec3(0, 0, 0);
+
+        for (const pose of GazeDirector.cameraPoses) {
+            if (!pose) continue;
+            const dist = position.distance(pose.center);
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestPoseId = pose.id;
+                closestPosePosition = pose.center;
+                closestPoseDirection = pose.target.clone().normalize();
+            }
+        }
+
+        let dot = currentPoseDirection.dot(closestPoseDirection);
+        dot = Math.max(-1, Math.min(1, dot));
+        const angle = Math.acos(dot) * math.RAD_TO_DEG;
+        const relativeDistance = minDistance / GazeDirector.averageDistance * 100;
+
+        console.log('Closest training pose:', closestPoseId, '| pos:', closestPosePosition, '| dir:', closestPoseDirection);
+        console.log('=== Pose distance:', minDistance, '| relative [%]:', relativeDistance, '| angle:', angle);
+
+        return { closestPoseId, minDistance };
     }
 }
 

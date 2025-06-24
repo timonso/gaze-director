@@ -60,6 +60,8 @@ class Camera extends Element {
     azimElevTween = new TweenValue({ azim: 30, elev: -15 });
     distanceTween = new TweenValue({ distance: 1 });
 
+    roll = 0;
+
     minElev = -90;
     maxElev = 90;
 
@@ -441,7 +443,7 @@ class Camera extends Element {
         cameraPosition.add(this.focalPointTween.value);
 
         this.entity.setLocalPosition(cameraPosition);
-        this.entity.setLocalEulerAngles(azimElev.elev, azimElev.azim, 0);
+        this.entity.setLocalEulerAngles(azimElev.elev, azimElev.azim, this.roll);
 
         this.fitClippingPlanes(this.entity.getLocalPosition(), this.entity.forward);
 
