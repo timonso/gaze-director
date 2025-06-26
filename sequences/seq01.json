@@ -2,16 +2,16 @@
     "persistentTargets": true,
     "scenes": [
         {
-            "id": "scene1",
-            "filepath": "scenes/sphere.ssproj",
-            "repetitions": 1,
-            "showStimuli": true
-        },
-        {
-            "id": "scene2",
-            "filepath": "scenes/greenhouse01.ssproj",
+            "id": "scene0",
+            "filepath": "scenes/flowers.ssproj",
             "repetitions": 1,
             "showStimuli": false
+        },
+        {
+            "id": "scene1",
+            "filepath": "scenes/house.ssproj",
+            "repetitions": 1,
+            "showStimuli": true
         }
     ]
 }

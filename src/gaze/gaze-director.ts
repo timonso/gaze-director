@@ -39,6 +39,8 @@ type CameraPose = {
     direction: Vec3;
     roll: number;
     fov: Vec2;
+    heldOut: boolean;
+    similarityScore: number;
 };
 
 class AddStimulusOp {
@@ -105,6 +107,7 @@ class GazeDirector {
     static cameraFov: Vec2 = new Vec2(60, 40); // [degrees]
     static averageFov: Vec2 = new Vec2(60, 40); // [degrees]
     static averageDistance: number = 0;
+    static averageSimilarity: number = 0;
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
@@ -179,8 +182,8 @@ class GazeDirector {
             this.getCurrentCameraTransform(scene);
         });
 
-        events.on('gaze.getCurrentPoseDeviation', () => {
-            this.getCurrentPoseDeviation(scene);
+        events.on('gaze.probeCurrentPose', () => {
+            this.probeCurrentPose(scene);
         });
 
         events.on('gaze.loadCameraData', () => {
@@ -268,6 +271,7 @@ class GazeDirector {
     // adapted from 'loadCameraPoses' in '/src/file-handler.ts'
     loadCameraData(cameraData: any) {
         console.log('Loading camera data:', cameraData);
+        GazeDirector.averageSimilarity = cameraData.ssim_mean;
         GazeDirector.cameraPoses.length = 0;
         GazeDirector.cameraPoses.push(undefined);
 
@@ -301,8 +305,11 @@ class GazeDirector {
                 target: targetPosition,
                 direction: direction,
                 roll: 0,
-                fov: fieldOfView
+                fov: fieldOfView,
+                heldOut: frame.held_out || false,
+                similarityScore: frame.ssim || -1
             });
+
         }
 
         const minDistances: number[] = [];
@@ -377,38 +384,63 @@ class GazeDirector {
         const target = scene.camera.focalPoint;
         const direction = (target.clone().sub(position)).normalize();
 
-        console.log('Current view pose:', position, direction);
+        console.log('Current view pose: pos:', position, '| dir:', direction);
 
         return { position, direction };
     }
 
-    getCurrentPoseDeviation(scene: Scene) {
+    probeCurrentPose(scene: Scene) {
         const { position, direction: currentPoseDirection } = this.getCurrentCameraTransform(scene);
         let minDistance = Infinity;
-        let closestPoseId = -1;
-        let closestPoseDirection = new Vec3(0, 0, 0);
-        let closestPosePosition = new Vec3(0, 0, 0);
+        let closestPose: CameraPose;
 
         for (const pose of GazeDirector.cameraPoses) {
             if (!pose) continue;
             const dist = position.distance(pose.center);
             if (dist < minDistance) {
                 minDistance = dist;
-                closestPoseId = pose.id;
-                closestPosePosition = pose.center;
-                closestPoseDirection = pose.target.clone().normalize();
+                closestPose = pose;
             }
         }
 
+        const closestPosePosition = closestPose.center;
+        const closestPoseDirection = closestPose.target.clone().normalize();
+        const closestPoseFov = closestPose.fov.x;
+        const closestPoseHeldOut = closestPose.heldOut ? '(H)' : '(T)';
+        const closestPoseSimilarity = closestPose.similarityScore;
+
         let dot = currentPoseDirection.dot(closestPoseDirection);
         dot = Math.max(-1, Math.min(1, dot));
-        const angle = Math.acos(dot) * math.RAD_TO_DEG;
         const relativeDistance = minDistance / GazeDirector.averageDistance * 100;
 
-        console.log('Closest training pose:', closestPoseId, '| pos:', closestPosePosition, '| dir:', closestPoseDirection);
-        console.log('=== Pose distance:', minDistance, '| relative [%]:', relativeDistance, '| angle:', angle);
+        const angle = Math.acos(dot) * math.RAD_TO_DEG;
+        const commonFov = (scene.camera.fov / 2 + closestPoseFov / 2);
+        let frustumIntersection = (commonFov - angle) / commonFov;
+        frustumIntersection = Math.max(0, Math.min(1, frustumIntersection)) * 100;
 
-        return { closestPoseId, minDistance };
+        const relativeSimilarity = closestPoseSimilarity / GazeDirector.averageSimilarity * 100;
+
+        console.log(
+            'Closest reference pose:',
+            closestPose.id,
+            closestPoseHeldOut,
+            '| ssim:',
+            closestPoseSimilarity.toFixed(3),
+            '; rel [%]:',
+            `${relativeSimilarity.toFixed(3)}`
+        );
+        console.log(
+            '=== Pose distance:',
+            minDistance.toFixed(3),
+            '; rel [%]:',
+            relativeDistance.toFixed(3),
+            '| angle:',
+            angle.toFixed(3),
+            '; intersection [%]:',
+            frustumIntersection.toFixed(3)
+        );
+
+        return closestPoseHeldOut;
     }
 }
 

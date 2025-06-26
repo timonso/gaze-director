@@ -311,6 +311,9 @@ class Menu extends Container {
             text: 'Add Training Pose',
             onSelect: async () => await events.fire('tool.gaze.poseSelection')
         }, {
+            text: 'Reset Poses',
+            onSelect: async () => await events.fire('timeline.resetPoses')
+        }, {
             // separator
         }, {
             text: 'Setup Sequence',
