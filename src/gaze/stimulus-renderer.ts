@@ -91,7 +91,7 @@ class StimulusRenderer extends Element {
             this.currentStimulus = stimulus;
 
             // adjust for device pixel ratio
-            const nativeRadius = stimulus.radius * this._pixelScale;
+            const nativeRadius = stimulus.outerRadius * this._pixelScale;
 
             // precompute constant gaussian subterm 1 / (2 * sigma^2)
             const sigma = nativeRadius * stimulus.hardness;

@@ -46,14 +46,14 @@ class Target extends Element {
     editorEntity: Entity;
     material: ShaderMaterial;
     name: string = 'target';
-    _opacity: number = 1.0;
-    _color: Color = new Color(1, 1, 1, 1);
-
     startFrame: number;
     duration: number = 2.0; // [seconds]
+
+    _color: Color = new Color(1, 1, 1, 1);
     _lightPosition: Vec3 = new Vec3(0, 10, 10);
     _specularFactor: number = 10.0; // [0-1]
     _backgroundBuffer: Texture;
+    _opacity: number; // [0-1]
     _radius: number = 32; // [px]
     _debugRadius: number = 1.0; // [scene units]
     _timelineUpdateHandle: EventHandle;

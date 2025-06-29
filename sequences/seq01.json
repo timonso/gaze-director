@@ -5,13 +5,16 @@
             "id": "scene0",
             "filepath": "scenes/flowers.ssproj",
             "repetitions": 1,
-            "showStimuli": false
+            "showStimuli": false,
+            "stimulusDiameter": 0.76,
+            "targetOpacity": 1.0
         },
         {
             "id": "scene1",
             "filepath": "scenes/house.ssproj",
             "repetitions": 1,
-            "showStimuli": true
+            "showStimuli": true,
+            "stimulusDiameter": 2.0
         }
     ]
 }

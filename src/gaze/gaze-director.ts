@@ -16,7 +16,7 @@ import { CalibrationScreen } from './ui/calibration-screen';
 
 // values from Bailey et al. 2009 & Rayner 1975
 export const FOVEAL_VISUAL_ANGLE = 3.8; // [degrees]
-export const STIMULUS_VISUAL_ANGLE = 0.76; // [degrees]
+export const STIMULUS_VISUAL_ANGLE = 0.25; // [degrees]
 export const STMULUS_INTENSITY = 0.095; // [0-1]
 export const STIMULUS_FREQUENCY = 10.0; // [Hz]
 export const STIMULUS_DURATION = 10.0; // [seconds]
@@ -24,12 +24,12 @@ export const STIMULUS_DURATION = 10.0; // [seconds]
 // value from WebgazerJS
 export const TRACKING_ERROR = 4.17; // [degrees]
 
-export const STIMULUS_HARDNESS = 0.2; // [0-1]
+export const STIMULUS_HARDNESS = 0.25; // [0-1]
 export const SUPPRESSION_LAG = 30; // [native frames]
 export const SUPPRESSION_ANGLE = 10; // [degrees]
 export const SUPPRESSION_RADIUS = 256; // [px]
 
-export const VIEWING_DISTANCE = 75; // [cm]
+export const VIEWING_DISTANCE = 60; // [cm]
 export const SCREEN_WIDTH_METRIC = 30; // [cm]
 
 type CameraPose = {
@@ -40,7 +40,7 @@ type CameraPose = {
     roll: number;
     fov: Vec2;
     heldOut: boolean;
-    similarityScore: number;
+    metrics: {ssim: number, lpips: number};
 };
 
 class AddStimulusOp {
@@ -107,7 +107,7 @@ class GazeDirector {
     static cameraFov: Vec2 = new Vec2(60, 40); // [degrees]
     static averageFov: Vec2 = new Vec2(60, 40); // [degrees]
     static averageDistance: number = 0;
-    static averageSimilarity: number = 0;
+    static averageMetrics: {ssim_mean: number, lpips_mean: number} = { ssim_mean: 0, lpips_mean: 0 };
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
         this.stimulusRenderer = new StimulusRenderer(scene, events);
@@ -271,7 +271,7 @@ class GazeDirector {
     // adapted from 'loadCameraPoses' in '/src/file-handler.ts'
     loadCameraData(cameraData: any) {
         console.log('Loading camera data:', cameraData);
-        GazeDirector.averageSimilarity = cameraData.ssim_mean;
+        GazeDirector.averageMetrics = { ssim_mean: cameraData.ssim_mean, lpips_mean: cameraData.lpips_mean };
         GazeDirector.cameraPoses.length = 0;
         GazeDirector.cameraPoses.push(undefined);
 
@@ -307,7 +307,7 @@ class GazeDirector {
                 roll: 0,
                 fov: fieldOfView,
                 heldOut: frame.held_out || false,
-                similarityScore: frame.ssim || -1
+                metrics: { ssim: frame.ssim ?? -1, lpips: frame.lpips ?? -1 }
             });
 
         }
@@ -407,7 +407,7 @@ class GazeDirector {
         const closestPoseDirection = closestPose.target.clone().normalize();
         const closestPoseFov = closestPose.fov.x;
         const closestPoseHeldOut = closestPose.heldOut ? '(H)' : '(T)';
-        const closestPoseSimilarity = closestPose.similarityScore;
+        const closestPoseSimilarity = closestPose.metrics.lpips;
 
         let dot = currentPoseDirection.dot(closestPoseDirection);
         dot = Math.max(-1, Math.min(1, dot));
@@ -418,13 +418,13 @@ class GazeDirector {
         let frustumIntersection = (commonFov - angle) / commonFov;
         frustumIntersection = Math.max(0, Math.min(1, frustumIntersection)) * 100;
 
-        const relativeSimilarity = closestPoseSimilarity / GazeDirector.averageSimilarity * 100;
+        const relativeSimilarity = closestPoseSimilarity / GazeDirector.averageMetrics.lpips_mean * 100;
 
         console.log(
             'Closest reference pose:',
             closestPose.id,
             closestPoseHeldOut,
-            '| ssim:',
+            '| lpips:',
             closestPoseSimilarity.toFixed(3),
             '; rel [%]:',
             `${relativeSimilarity.toFixed(3)}`

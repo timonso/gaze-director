@@ -45,7 +45,7 @@ class StimulusSelection {
             text: 'Add',
             class: 'select-toolbar-button'
         });
-        const radiusSlider = new NumericInput({
+        const diameterSlider = new NumericInput({
             precision: 3,
             value: stimulus.visualAngle,
             placeholder: 'Diameter [deg]',
@@ -83,7 +83,7 @@ class StimulusSelection {
             max: 1.0
         });
 
-        stimulusToolbar.append(radiusSlider);
+        stimulusToolbar.append(diameterSlider);
         stimulusToolbar.append(durationSlider);
         stimulusToolbar.append(frequencySlider);
         stimulusToolbar.append(intensitySlider);
@@ -107,8 +107,8 @@ class StimulusSelection {
             );
         });
 
-        radiusSlider.on('change', () => {
-            stimulus.radius = radiusSlider.value;
+        diameterSlider.on('change', () => {
+            stimulus.diameter = diameterSlider.value;
         });
         durationSlider.on('change', () => {
             stimulus.duration = durationSlider.value;

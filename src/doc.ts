@@ -128,7 +128,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             for (let i = 0; i < documentContent.gaze_stimuli.length; ++i) {
                 const {
                     position,
-                    radius,
+                    diameter,
                     duration,
                     startFrame,
                     intensity,
@@ -137,7 +137,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                 } = documentContent.gaze_stimuli[i];
                 const stimulus = new Stimulus(
                     new Vec3(position),
-                    radius,
+                    diameter,
                     duration,
                     startFrame,
                     intensity,

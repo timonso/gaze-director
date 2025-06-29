@@ -2,12 +2,16 @@ import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
 import { SceneRecord } from './gaze-tracker';
+import { Stimulus } from './stimulus';
+import { Target } from './target';
 
 type GazeScene = {
     id: string;
     filepath: string;
     repetitions: number;
     showStimuli: boolean;
+    stimulusDiameter?: number; // [deg]
+    targetOpacity?: number; // [0-1]
 }
 
 type SequenceData = {
@@ -122,6 +126,22 @@ class SceneSequencer {
         const scenePath = this.scenesLocation + scene.filepath;
         console.log(`Loading scene from server: ${scenePath}`);
         await events.invoke('gaze.doc.openFromServer', scenePath);
+
+        // override stimulus diameter if specified
+        if (scene.stimulusDiameter) {
+            const allStimuli: Stimulus[] = await events.invoke('gaze.allStimuli');
+            for (const stimulus of allStimuli) {
+                stimulus.diameter = scene.stimulusDiameter;
+            }
+        }
+
+        // override target opacity if specified
+        if (scene.targetOpacity !== undefined) {
+            const allTargets: Target[] = await events.invoke('gaze.allTargets');
+            for (const target of allTargets) {
+                target.opacity = scene.targetOpacity;
+            }
+        }
     }
 
     startSequence(events: Events) {

@@ -55,12 +55,12 @@ class Stimulus extends Element {
     screenPosition: Vec3 = new Vec3(0, 0, 0);
     intensity: number; // [0-1]
     visualAngle: number; // [degrees]
+    outerRadius: number; // [px]
     startFrame: number; // [frames]
     duration: number; // [seconds]
     frequency: number; // [Hz]
     hardness: number; // [0-1]
 
-    _outerRadius: number; // [px]
     _editorRadius: number; // [scene units]
     _updateHandle: EventHandle;
     _enableHandle: EventHandle;
@@ -77,20 +77,20 @@ class Stimulus extends Element {
     static defaultHardness: number = STIMULUS_HARDNESS; // [0-1]
     static defaultDuration: number = STIMULUS_DURATION; // [seconds]
 
-    set radius(radius: number) {
-        this.visualAngle = radius;
-        this._outerRadius = visualAngleToRadius(radius);
+    set diameter(diameter: number) {
+        this.visualAngle = diameter;
+        this.outerRadius = visualAngleToRadius(diameter);
 
-        const r = (this._editorRadius = this._outerRadius * EDITOR_SCALE);
+        const r = (this._editorRadius = this.outerRadius * EDITOR_SCALE);
         this.editorEntity.setLocalScale(r, r, r);
     }
-    get radius() {
-        return this._outerRadius;
+    get diameter() {
+        return this.outerRadius;
     }
 
     constructor(
         position: Vec3 = new Vec3(0, 0, 0),
-        radius: number = STIMULUS_VISUAL_ANGLE,
+        diameter: number = STIMULUS_VISUAL_ANGLE,
         duration: number = STIMULUS_DURATION,
         startFrame: number = 0,
         intensity: number = STMULUS_INTENSITY,
@@ -112,7 +112,7 @@ class Stimulus extends Element {
         this.frequency = frequency;
         this.intensity = intensity;
         this.hardness = hardness;
-        this.radius = radius;
+        this.diameter = diameter;
 
         this.worldPosition = position;
         this.editorEntity.setPosition(position);
@@ -143,7 +143,7 @@ class Stimulus extends Element {
                     `d: ${this.duration}`,
                     `e: ${endFrame}`,
                     `v: ${this.visualAngle}`,
-                    `r: ${this.radius}`,
+                    `r: ${this.diameter}`,
                     `i: ${this.intensity}`,
                     `h: ${this.hardness}`,
                     `f: ${this.frequency}`].join(' | ')} ]`;
@@ -232,7 +232,7 @@ class Stimulus extends Element {
 
     serialize(serializer: Serializer): void {
         serializer.packa(this.editorEntity.getWorldTransform().data);
-        serializer.pack(this.radius);
+        serializer.pack(this.diameter);
     }
 
     moved() {
@@ -252,7 +252,7 @@ class Stimulus extends Element {
     docSerialize() {
         return {
             position: this.worldPosition.toArray(),
-            radius: this.visualAngle,
+            diameter: this.visualAngle,
             duration: this.duration,
             startFrame: this.startFrame,
             intensity: this.intensity,
