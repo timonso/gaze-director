@@ -2,19 +2,20 @@
     "persistentTargets": true,
     "scenes": [
         {
-            "id": "scene0",
-            "filepath": "scenes/flowers.ssproj",
+            "id": "house_low",
+            "filepath": "scenes/house_low.ssproj",
             "repetitions": 1,
-            "showStimuli": false,
-            "stimulusDiameter": 0.76,
-            "targetOpacity": 1.0
+            "duration": 600,
+            "showModulations": true,
+            "modulationDiameter": 2.0
         },
         {
-            "id": "scene1",
-            "filepath": "scenes/house.ssproj",
+            "id": "flowers",
+            "filepath": "scenes/flowers.ssproj",
             "repetitions": 1,
-            "showStimuli": true,
-            "stimulusDiameter": 2.0
+            "showModulations": false,
+            "modulationDiameter": 0.25,
+            "targetOpacity": 0.4
         }
     ]
 }

@@ -5,14 +5,14 @@ import { Container, Label, Element as PcuiElement } from 'pcui';
 import { Element, ElementType } from '../../element';
 import { Events } from '../../events';
 import deleteSvg from '../../ui/svg/delete.svg';
-import { Stimulus } from '../stimulus';
+import { Modulation } from '../modulation';
 
 const createSvg = (svgString: string) => {
     const decodedStr = decodeURIComponent(svgString.substring('data:image/svg+xml,'.length));
     return new DOMParser().parseFromString(decodedStr, 'image/svg+xml').documentElement;
 };
 
-class StimulusItem extends Container {
+class ModulationItem extends Container {
     getName: () => string;
     setName: (value: string) => void;
     getSelected: () => boolean;
@@ -93,7 +93,7 @@ class StimulusItem extends Container {
     }
 }
 
-class StimuliList extends Container {
+class ModulationsList extends Container {
     constructor(events: Events, args = {}) {
         args = {
             ...args,
@@ -102,44 +102,44 @@ class StimuliList extends Container {
 
         super(args);
 
-        const items = new Map<Stimulus, StimulusItem>();
+        const items = new Map<Modulation, ModulationItem>();
 
         events.on('scene.elementAdded', (element: Element) => {
-            if (element.type === ElementType.gaze_stimulus) {
-                const stimulus = element as Stimulus;
-                const item = new StimulusItem(stimulus.name);
+            if (element.type === ElementType.gaze_modulation) {
+                const modulation = element as Modulation;
+                const item = new ModulationItem(modulation.name);
                 this.append(item);
-                items.set(stimulus, item);
-                events.fire('gaze.stimuliChanged', items.size);
+                items.set(modulation, item);
+                events.fire('gaze.modulationsChanged', items.size);
             }
         });
 
         events.on('scene.elementRemoved', (element: Element) => {
-            if (element.type === ElementType.gaze_stimulus) {
-                const stimulus = element as Stimulus;
-                const item = items.get(stimulus);
+            if (element.type === ElementType.gaze_modulation) {
+                const modulation = element as Modulation;
+                const item = items.get(modulation);
                 if (item) {
                     this.remove(item);
-                    items.delete(stimulus);
-                    events.fire('gaze.stimuliChanged', items.size);
+                    items.delete(modulation);
+                    events.fire('gaze.modulationsChanged', items.size);
                 }
             }
         });
 
-        events.on('selection.changed', (selection: Stimulus) => {
+        events.on('selection.changed', (selection: Modulation) => {
             items.forEach((value, key) => {
                 value.selected = key === selection;
             });
         });
 
-        events.on('splat.name', (stimulus: Stimulus) => {
-            const item = items.get(stimulus);
+        events.on('splat.name', (modulation: Modulation) => {
+            const item = items.get(modulation);
             if (item) {
-                item.name = stimulus.name;
+                item.name = modulation.name;
             }
         });
 
-        this.on('click', (item: StimulusItem) => {
+        this.on('click', (item: ModulationItem) => {
             for (const [key, value] of items) {
                 if (item === value) {
                     events.fire('selection', key);
@@ -148,27 +148,27 @@ class StimuliList extends Container {
             }
         });
 
-        this.on('removeClicked', (item: StimulusItem) => {
-            let stimulus;
+        this.on('removeClicked', (item: ModulationItem) => {
+            let modulation;
             for (const [key, value] of items) {
                 if (item === value) {
-                    stimulus = key;
+                    modulation = key;
                     break;
                 }
             }
 
-            if (!stimulus) {
+            if (!modulation) {
                 return;
             }
-            stimulus.remove();
-            stimulus.destroy();
+            modulation.remove();
+            modulation.destroy();
         });
     }
 
     protected _onAppendChild(element: PcuiElement): void {
         super._onAppendChild(element);
 
-        if (element instanceof StimulusItem) {
+        if (element instanceof ModulationItem) {
             element.on('click', () => {
                 this.emit('click', element);
             });
@@ -180,7 +180,7 @@ class StimuliList extends Container {
     }
 
     protected _onRemoveChild(element: PcuiElement): void {
-        if (element instanceof StimulusItem) {
+        if (element instanceof ModulationItem) {
             element.unbind('click');
             element.unbind('removeClicked');
         }
@@ -189,4 +189,4 @@ class StimuliList extends Container {
     }
 }
 
-export { StimuliList, StimulusItem };
+export { ModulationsList, ModulationItem };

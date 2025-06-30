@@ -2,15 +2,16 @@ import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
 import { SceneRecord } from './gaze-tracker';
-import { Stimulus } from './stimulus';
+import { Modulation } from './modulation';
 import { Target } from './target';
 
 type GazeScene = {
     id: string;
     filepath: string;
     repetitions: number;
-    showStimuli: boolean;
-    stimulusDiameter?: number; // [deg]
+    duration?: number; // [frames]
+    showModulations: boolean;
+    modulationDiameter?: number; // [deg]
     targetOpacity?: number; // [0-1]
 }
 
@@ -75,7 +76,7 @@ class SceneSequencer {
                         const sceneRecord: SceneRecord = {
                             sceneId: scenes[idx].id,
                             participantId: this.participantId,
-                            modulated: scenes[idx].showStimuli
+                            modulated: scenes[idx].showModulations
                         };
 
                         events.fire('gaze.pauseTracking');
@@ -110,8 +111,8 @@ class SceneSequencer {
             console.log(`--- Scene #${idx} loaded successfully: ${scenes[idx].id} ---`);
             console.log(`Playing scene #${idx}`);
 
-            events.fire('gaze.showStimuliPlayer', scenes[idx].showStimuli);
-            this.currentSceneDuration = events.invoke('timeline.frames') - 5;
+            events.fire('gaze.showModulationsPlayer', scenes[idx].showModulations);
+            this.currentSceneDuration = scenes[idx].duration ?? events.invoke('timeline.frames') - 5;
             console.log('Scene duration: ', this.currentSceneDuration);
         })
         .catch((error) => {
@@ -121,17 +122,17 @@ class SceneSequencer {
     }
 
     async loadScene(scene: GazeScene, events: Events) {
-        console.log(`Scene ID: ${scene.id}, File: ${scene.filepath}, Repetitions: ${scene.repetitions}, Modulated: ${scene.showStimuli}`);
+        console.log(`Scene ID: ${scene.id}, File: ${scene.filepath}, Repetitions: ${scene.repetitions}, Modulated: ${scene.showModulations}`);
 
         const scenePath = this.scenesLocation + scene.filepath;
         console.log(`Loading scene from server: ${scenePath}`);
         await events.invoke('gaze.doc.openFromServer', scenePath);
 
-        // override stimulus diameter if specified
-        if (scene.stimulusDiameter) {
-            const allStimuli: Stimulus[] = await events.invoke('gaze.allStimuli');
-            for (const stimulus of allStimuli) {
-                stimulus.diameter = scene.stimulusDiameter;
+        // override modulation diameter if specified
+        if (scene.modulationDiameter) {
+            const allModulations: Modulation[] = await events.invoke('gaze.allModulations');
+            for (const modulation of allModulations) {
+                modulation.diameter = scene.modulationDiameter;
             }
         }
 

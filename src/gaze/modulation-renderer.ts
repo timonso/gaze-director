@@ -15,13 +15,13 @@ import { ElementType, Element } from 'src/element';
 import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
-import * as playerShaders from './shaders/stimulus_player-shader';
-import { Stimulus } from './stimulus';
+import { Modulation } from './modulation';
+import * as playerShaders from './shaders/modulation_player-shader';
 
-class StimulusRenderer extends Element {
+class ModulationRenderer extends Element {
     shader: Shader;
-    stimuliLayer: QuadRender;
-    currentStimulus: Stimulus = null;
+    modulationsLayer: QuadRender;
+    currentModulation: Modulation = null;
     _currentTime: number = 0;
     _overlayColorBuffer: Texture;
     _overlayRenderTarget: any;
@@ -34,7 +34,7 @@ class StimulusRenderer extends Element {
             scene.app.graphicsDevice,
             playerShaders.vertexShader,
             playerShaders.fragmentShader,
-            'stimulus-renderer',
+            'modulation-renderer',
             {
                 vertex_position: SEMANTIC_POSITION
             }
@@ -42,7 +42,7 @@ class StimulusRenderer extends Element {
 
         const device = scene.app.graphicsDevice;
         const effectiveCamera = scene.camera.entity.camera;
-        this.stimuliLayer = new QuadRender(this.shader);
+        this.modulationsLayer = new QuadRender(this.shader);
 
         this._overlayColorBuffer = new Texture(device, {
             width: device.width,
@@ -57,7 +57,7 @@ class StimulusRenderer extends Element {
         });
 
         const screenPostion_loc = device.scope.resolve(
-            'stimulusScreenPosition'
+            'modulationScreenPosition'
         );
         const currentTime_loc = device.scope.resolve('currentTime');
         const outerRadius_loc = device.scope.resolve('outerRadius');
@@ -75,32 +75,32 @@ class StimulusRenderer extends Element {
         });
 
         events.on('timeline.setPlaying', (_) => {
-            this.currentStimulus = null;
+            this.currentModulation = null;
         });
 
-        events.function('gaze.requestStimulusUpdate', (stimulus: Stimulus) => {
-            // always accept stimulus deactivations
-            if (!stimulus) {
-                this.currentStimulus = stimulus;
+        events.function('gaze.requestModulationUpdate', (modulation: Modulation) => {
+            // always accept modulation deactivations
+            if (!modulation) {
+                this.currentModulation = modulation;
                 return true;
             }
 
-            // current stimulus is still active
-            if (this.currentStimulus) return false;
+            // current modulation is still active
+            if (this.currentModulation) return false;
 
-            this.currentStimulus = stimulus;
+            this.currentModulation = modulation;
 
             // adjust for device pixel ratio
-            const nativeRadius = stimulus.outerRadius * this._pixelScale;
+            const nativeRadius = modulation.outerRadius * this._pixelScale;
 
             // precompute constant gaussian subterm 1 / (2 * sigma^2)
-            const sigma = nativeRadius * stimulus.hardness;
+            const sigma = nativeRadius * modulation.hardness;
             const halfVariance = 1.0 / (2.0 * sigma ** 2);
 
             outerRadius_loc.setValue(nativeRadius);
             halfVariance_loc.setValue(halfVariance);
-            modulationIntensity_loc.setValue(stimulus.intensity);
-            modulationFrequency_loc.setValue(stimulus.frequency);
+            modulationIntensity_loc.setValue(modulation.intensity);
+            modulationFrequency_loc.setValue(modulation.frequency);
             // sceneBuffer_loc.setValue(effectiveCamera.renderTarget.colorBuffer);
 
             return true;
@@ -112,9 +112,9 @@ class StimulusRenderer extends Element {
 
         effectiveCamera.on('postRenderLayer', (layer: Layer, _) => {
             if (
-                layer !== scene.gaze_stimulusLayer ||
-                !this.currentStimulus ||
-                !this.currentStimulus.visible
+                layer !== scene.gaze_modulationLayer ||
+                !this.currentModulation ||
+                !this.currentModulation.visible
             ) {
                 return;
             }
@@ -126,7 +126,7 @@ class StimulusRenderer extends Element {
             const glDevice = device as WebglGraphicsDevice;
             glDevice.setRenderTarget(this._overlayRenderTarget);
             glDevice.updateBegin();
-            this.stimuliLayer.render();
+            this.modulationsLayer.render();
             glDevice.updateEnd();
             glDevice.copyRenderTarget(
                 this._overlayRenderTarget,
@@ -143,11 +143,11 @@ class StimulusRenderer extends Element {
         this.resizeRenderTarget(device);
     }
 
-    // get the stimulus screen position in WebGL coordinates
+    // get the modulation screen position in WebGL coordinates
     getCanvasScreenPosition(device: GraphicsDevice): number[] {
         const screenPosition = [
-            this.currentStimulus.screenPosition.x * this._pixelScale,
-            device.height - this.currentStimulus.screenPosition.y * this._pixelScale
+            this.currentModulation.screenPosition.x * this._pixelScale,
+            device.height - this.currentModulation.screenPosition.y * this._pixelScale
         ];
         // console.log(screenPosition);
         return screenPosition;
@@ -157,7 +157,7 @@ class StimulusRenderer extends Element {
         if (this._overlayColorBuffer) this._overlayColorBuffer.destroy();
         if (this._overlayRenderTarget) this._overlayRenderTarget.destroy();
 
-        this._pixelScale = window.devicePixelRatio;
+        this._pixelScale = device.maxPixelRatio;
 
         this._overlayColorBuffer = new Texture(device, {
             width: device.width,
@@ -173,4 +173,4 @@ class StimulusRenderer extends Element {
     }
 }
 
-export { StimulusRenderer };
+export { ModulationRenderer };

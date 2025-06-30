@@ -9,7 +9,7 @@ import { initFileHandler } from './file-handler';
 import { GazeDirector } from './gaze/gaze-director';
 import { PoseSelection } from './gaze/tools/pose-selection';
 import { SequenceSetup } from './gaze/tools/sequence-setup';
-import { StimulusSelection } from './gaze/tools/stimulus-selection';
+import { ModulationSelection } from './gaze/tools/modulation-selection';
 import { TargetSelection } from './gaze/tools/target-selection';
 import { registerPlySequenceEvents } from './ply-sequence';
 import { registerPublishEvents } from './publish';
@@ -277,7 +277,7 @@ const main = async () => {
 
     // gaze tool initialization
     const gazeTracker = new GazeDirector(scene, events, editHistory);
-    toolManager.register('gaze.stimulusSelection', new StimulusSelection(scene, events, editorUI.canvasContainer));
+    toolManager.register('gaze.modulationSelection', new ModulationSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('gaze.targetSelection', new TargetSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('gaze.poseSelection', new PoseSelection(scene, events, editorUI.canvasContainer));
     toolManager.register('gaze.sequenceSetup', new SequenceSetup(scene, events, editorUI.canvasContainer));

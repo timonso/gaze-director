@@ -274,8 +274,8 @@ class Menu extends Container {
         }, {
             // separator
         }, {
-            text: 'Add Stimulus',
-            onSelect: async () => await events.fire('tool.gaze.stimulusSelection')
+            text: 'Add Modulation',
+            onSelect: async () => await events.fire('tool.gaze.modulationSelection')
         }, {
             text: 'Add Target',
             onSelect: async () => await events.fire('tool.gaze.targetSelection')

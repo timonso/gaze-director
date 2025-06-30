@@ -15,7 +15,7 @@ import { Events } from 'src/events';
 
 import { Scene } from '../../scene';
 import { Splat } from '../../splat';
-import { Stimulus } from '../stimulus';
+import { Modulation } from '../modulation';
 import { Target } from '../target';
 
 class TargetSelection {
@@ -23,7 +23,7 @@ class TargetSelection {
     deactivate: () => void;
 
     active = false;
-    attachStimulus = false;
+    attachModulation = false;
 
     constructor(scene: Scene, events: Events, canvasContainer: Container) {
         const target = new Target(scene, events);
@@ -94,9 +94,9 @@ class TargetSelection {
             class: 'color-picker',
             value: target.color.toArray()
         });
-        const addStimulusToggle = new BooleanInput({
+        const addModulationToggle = new BooleanInput({
             class: 'control-element',
-            value: this.attachStimulus
+            value: this.attachModulation
         });
 
         targetToolbar.append(radiusSlider);
@@ -115,9 +115,9 @@ class TargetSelection {
         );
         targetToolbar.append(colorPicker);
         targetToolbar.append(
-            new Label({ text: '+ Stimulus:', class: 'select-toolbar-label' })
+            new Label({ text: '+ Modulation:', class: 'select-toolbar-label' })
         );
-        targetToolbar.append(addStimulusToggle);
+        targetToolbar.append(addModulationToggle);
         targetToolbar.append(addButton);
 
         canvasContainer.append(targetToolbar);
@@ -137,16 +137,16 @@ class TargetSelection {
                 target.color
             );
 
-            if (this.attachStimulus) {
+            if (this.attachModulation) {
                 events.fire(
-                    'gaze.addStimulus',
+                    'gaze.addModulation',
                     target.editorEntity.getPosition(),
-                    Stimulus.defaultVisualAngle,
+                    Modulation.defaultVisualAngle,
                     target.duration,
                     currentFrame,
-                    Stimulus.defaultIntensity,
-                    Stimulus.defaultFrequency,
-                    Stimulus.defaultHardness
+                    Modulation.defaultIntensity,
+                    Modulation.defaultFrequency,
+                    Modulation.defaultHardness
                 );
             }
         });
@@ -168,8 +168,8 @@ class TargetSelection {
                 1.0
             );
         });
-        addStimulusToggle.on('change', () => {
-            this.attachStimulus = addStimulusToggle.value;
+        addModulationToggle.on('change', () => {
+            this.attachModulation = addModulationToggle.value;
         });
         specularSlider.on('change', () => {
             target.specularFactor = specularSlider.value;

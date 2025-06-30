@@ -16,12 +16,12 @@ class ScenePlayer {
             document.body.classList.toggle('hidden');
         });
 
-        events.on('gaze.showStimuliEditor', (isVisible: boolean) => {
+        events.on('gaze.showModulationsEditor', (isVisible: boolean) => {
             scene.gaze_editorLayer.enabled = isVisible;
         });
 
-        events.on('gaze.showStimuliPlayer', (isVisible: boolean) => {
-            scene.gaze_stimulusLayer.enabled = isVisible;
+        events.on('gaze.showModulationsPlayer', (isVisible: boolean) => {
+            scene.gaze_modulationLayer.enabled = isVisible;
         });
 
         events.on('gaze.setInterfaceHidden', (isHidden: boolean) => {
@@ -67,11 +67,19 @@ class ScenePlayer {
     setupRendering(scene: Scene, events: Events) {
         events.fire('timeline.setFrameRate', 30);
         events.fire('timeline.setFrames', 300);
-        scene.camera.entity.camera.requestSceneColorMap(true);
-        scene.camera.entity.camera.requestSceneDepthMap(true);
-        // scene.graphicsDevice.maxPixelRatio = 1;
-        // scene.graphicsDevice.setResolution(1920, 1080);
-        // console.log('resolution set');
+
+        // scene.camera.entity.camera.requestSceneColorMap(true);
+        // scene.camera.entity.camera.requestSceneDepthMap(true);
+
+        // disable high dpi rendering for better performance
+        events.on('camera.resize', () => {
+            if (this._isPlaying) {
+                scene.graphicsDevice.maxPixelRatio = 1;
+                scene.graphicsDevice.setResolution(window.innerWidth, window.innerHeight);
+            } else {
+                scene.graphicsDevice.maxPixelRatio = window.devicePixelRatio;
+            }
+        });
     }
 }
 

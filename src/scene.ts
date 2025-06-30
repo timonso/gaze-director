@@ -37,7 +37,7 @@ class Scene {
     debugLayer: Layer;
     overlayLayer: Layer;
     gizmoLayer: Layer;
-    gaze_stimulusLayer: Layer;
+    gaze_modulationLayer: Layer;
     gaze_editorLayer: Layer;
     gaze_targetLayer: Layer;
     sceneState = [new SceneState(), new SceneState()];
@@ -195,9 +195,9 @@ class Scene {
             transparentSortMode: SORTMODE_NONE
         });
 
-        this.gaze_stimulusLayer = new Layer({
+        this.gaze_modulationLayer = new Layer({
             enabled: true,
-            name: 'Gaze Stimulus Layer',
+            name: 'Gaze Modulation Layer',
             clearDepthBuffer: false
         });
 
@@ -216,7 +216,7 @@ class Scene {
         layers.insert(this.shadowLayer, idx + 1);
         layers.insert(this.debugLayer, idx + 1);
         layers.insert(this.gaze_targetLayer, idx + 1);
-        layers.push(this.gaze_stimulusLayer);
+        layers.push(this.gaze_modulationLayer);
         layers.push(this.gaze_editorLayer);
         layers.push(this.overlayLayer);
         layers.push(this.gizmoLayer);
@@ -258,9 +258,9 @@ class Scene {
             this.remove(splat);
             (splat as Splat).destroy();
         });
-        const stimuli = this.getElementsByType(ElementType.gaze_stimulus);
-        stimuli.forEach((stimulus) => {
-            this.remove(stimulus);
+        const modulations = this.getElementsByType(ElementType.gaze_modulation);
+        modulations.forEach((modulation) => {
+            this.remove(modulation);
         });
         const targets = this.getElementsByType(ElementType.gaze_target);
         targets.forEach((target) => {

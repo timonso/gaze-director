@@ -16,11 +16,11 @@ const fragmentShader = /* glsl */ `
     uniform float halfVariance;
     uniform float modulationIntensity;
     uniform float modulationFrequency;
-    uniform vec2 stimulusScreenPosition;
+    uniform vec2 modulationScreenPosition;
     uniform sampler2D sceneBuffer;
     
     const float TAU = 6.2831853;
-    const vec3 stimulusColor = vec3(1.0, 1.0, 1.0);
+    const vec3 modulationColor = vec3(1.0, 1.0, 1.0);
 
     float gaussian(float dist) {
         return exp(-(dist * dist * halfVariance));
@@ -30,14 +30,14 @@ const fragmentShader = /* glsl */ `
         float intensity = sin(currentTime * TAU * modulationFrequency);
         intensity *= modulationIntensity;
 
-        float stimFragDist = distance(stimulusScreenPosition, gl_FragCoord.xy);
+        float stimFragDist = distance(modulationScreenPosition, gl_FragCoord.xy);
 
         ivec2 texel = ivec2(gl_FragCoord.xy);
         vec4 sceneColor = texelFetch(sceneBuffer, texel, 0);
 
         if (stimFragDist <= outerRadius) {
             float falloff = gaussian(stimFragDist);
-            vec3 modulatedColor = (stimulusColor * intensity) + (sceneColor.rgb * (1.0 - intensity));
+            vec3 modulatedColor = (modulationColor * intensity) + (sceneColor.rgb * (1.0 - intensity));
             vec3 compositeColor = (modulatedColor * falloff) + (sceneColor.rgb * (1.0 - falloff));
             gl_FragColor = vec4(compositeColor, sceneColor.a);
         } else {

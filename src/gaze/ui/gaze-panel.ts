@@ -1,6 +1,6 @@
 import { Container, Element, Label } from 'pcui';
 
-import { StimuliList } from './stimuli-list';
+import { ModulationsList } from './modulations-list';
 import { TargetsList } from './targets-list';
 import { Events } from '../../events';
 import addElementSvg from '../../ui/svg/new.svg';
@@ -30,7 +30,7 @@ class GazePanel extends Container {
             class: 'panel-header'
         });
 
-        const stimuliHeader = new Container({
+        const modulationsHeader = new Container({
             class: 'panel-header'
         });
 
@@ -48,7 +48,7 @@ class GazePanel extends Container {
             class: 'panel-header-label'
         });
 
-        const addStimulus = new Container({
+        const addModulation = new Container({
             class: 'panel-header-button'
         });
 
@@ -56,11 +56,11 @@ class GazePanel extends Container {
             class: 'panel-header-button'
         });
 
-        const stimuliLabel = new Label({
-            text: 'Stimuli: 0',
+        const modulationsLabel = new Label({
+            text: 'Modulations: 0',
             class: 'panel-header-label'
         });
-        stimuliHeader.append(stimuliLabel);
+        modulationsHeader.append(modulationsLabel);
 
         const targetsLabel = new Label({
             text: 'Targets: 0',
@@ -68,31 +68,31 @@ class GazePanel extends Container {
         });
         targetsHeader.append(targetsLabel);
 
-        addStimulus.dom.appendChild(createSvg(addElementSvg));
+        addModulation.dom.appendChild(createSvg(addElementSvg));
         addTarget.dom.appendChild(createSvg(addElementSvg));
 
         sceneHeader.append(sceneIcon);
         sceneHeader.append(sceneLabel);
-        stimuliHeader.append(addStimulus);
+        modulationsHeader.append(addModulation);
         targetsHeader.append(addTarget);
 
-        addStimulus.on('click', async () => {
-            await events.fire('tool.gaze.stimulusSelection');
+        addModulation.on('click', async () => {
+            await events.fire('tool.gaze.modulationSelection');
         });
 
         addTarget.on('click', async () => {
             await events.fire('tool.gaze.targetSelection');
         });
 
-        tooltips.register(addStimulus, 'New Stimulus', 'top');
+        tooltips.register(addModulation, 'New Modulation', 'top');
         tooltips.register(addTarget, 'New Target', 'top');
 
-        const stimuliList = new StimuliList(events);
+        const modulationsList = new ModulationsList(events);
 
-        const stimuliListContainer = new Container({
-            class: 'stimuli-list-container'
+        const modulationsListContainer = new Container({
+            class: 'modulations-list-container'
         });
-        stimuliListContainer.append(stimuliList);
+        modulationsListContainer.append(modulationsList);
 
         const targetsList = new TargetsList(events);
 
@@ -101,8 +101,8 @@ class GazePanel extends Container {
         });
         targetsListContainer.append(targetsList);
 
-        events.on('gaze.stimuliChanged', (count: number) => {
-            stimuliLabel.text = `Stimuli: ${count}`;
+        events.on('gaze.modulationsChanged', (count: number) => {
+            modulationsLabel.text = `Modulations: ${count}`;
         });
 
         events.on('gaze.targetsChanged', (count: number) => {
@@ -111,8 +111,8 @@ class GazePanel extends Container {
         });
 
         this.append(sceneHeader);
-        this.append(stimuliHeader);
-        this.append(stimuliListContainer);
+        this.append(modulationsHeader);
+        this.append(modulationsListContainer);
         this.append(targetsHeader);
         this.append(targetsListContainer);
         this.append(new Element({

@@ -1,7 +1,7 @@
 import { Color, Vec3 } from 'playcanvas';
 
 import { Events } from './events';
-import { Stimulus } from './gaze/stimulus';
+import { Modulation } from './gaze/modulation';
 import { Target } from './gaze/target';
 import { Scene } from './scene';
 import { DownloadWriter, FileStreamWriter } from './serialize/writer';
@@ -125,7 +125,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                 splat.docDeserialize(splatSettings);
             }
 
-            for (let i = 0; i < documentContent.gaze_stimuli.length; ++i) {
+            for (let i = 0; i < documentContent.gaze_modulations.length; ++i) {
                 const {
                     position,
                     diameter,
@@ -134,8 +134,8 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                     intensity,
                     frequency,
                     hardness
-                } = documentContent.gaze_stimuli[i];
-                const stimulus = new Stimulus(
+                } = documentContent.gaze_modulations[i];
+                const modulation = new Modulation(
                     new Vec3(position),
                     diameter,
                     duration,
@@ -144,7 +144,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                     frequency,
                     hardness
                 );
-                scene.add(stimulus);
+                scene.add(modulation);
             }
 
             for (let i = 0; i < documentContent.gaze_targets.length; ++i) {
@@ -203,7 +203,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
         try {
             const splats = events.invoke('scene.allSplats') as Splat[];
 
-            const gaze_stimuli: Stimulus[] = events.invoke('gaze.allStimuli');
+            const gaze_modulations: Modulation[] = events.invoke('gaze.allModulations');
             const gaze_targets: Target[] = events.invoke('gaze.allTargets');
 
             const document = {
@@ -214,7 +214,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                 timeline: events.invoke('docSerialize.timeline'),
                 splats: splats.map(s => s.docSerialize()),
 
-                gaze_stimuli: gaze_stimuli.map(s => s.docSerialize()),
+                gaze_modulations: gaze_modulations.map(s => s.docSerialize()),
                 gaze_targets: gaze_targets.map(t => t.docSerialize())
             };
 

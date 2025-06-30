@@ -6,25 +6,25 @@ import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
 import { GazeTracker } from './gaze-tracker';
+import { Modulation } from './modulation';
+import { ModulationRenderer } from './modulation-renderer';
 import { ScenePlayer } from './scene-player';
 import { SceneSequencer } from './scene-sequencer';
-import { Stimulus } from './stimulus';
-import { StimulusRenderer } from './stimulus-renderer';
 import { Target } from './target';
 import { TargetRenderer } from './target-renderer';
 import { CalibrationScreen } from './ui/calibration-screen';
 
 // values from Bailey et al. 2009 & Rayner 1975
 export const FOVEAL_VISUAL_ANGLE = 3.8; // [degrees]
-export const STIMULUS_VISUAL_ANGLE = 0.25; // [degrees]
+export const MODULATION_VISUAL_ANGLE = 0.25; // [degrees]
 export const STMULUS_INTENSITY = 0.095; // [0-1]
-export const STIMULUS_FREQUENCY = 10.0; // [Hz]
-export const STIMULUS_DURATION = 10.0; // [seconds]
+export const MODULATION_FREQUENCY = 10.0; // [Hz]
+export const MODULATION_DURATION = 10.0; // [seconds]
 
 // value from WebgazerJS
 export const TRACKING_ERROR = 4.17; // [degrees]
 
-export const STIMULUS_HARDNESS = 0.25; // [0-1]
+export const MODULATION_HARDNESS = 0.25; // [0-1]
 export const SUPPRESSION_LAG = 30; // [native frames]
 export const SUPPRESSION_ANGLE = 10; // [degrees]
 export const SUPPRESSION_RADIUS = 256; // [px]
@@ -43,26 +43,26 @@ type CameraPose = {
     metrics: {ssim: number, lpips: number};
 };
 
-class AddStimulusOp {
-    name: 'addStimulus';
+class AddModulationOp {
+    name: 'addModulation';
     scene: Scene;
-    stimulus: Stimulus;
+    modulation: Modulation;
 
-    constructor(scene: Scene, stimulus: Stimulus) {
+    constructor(scene: Scene, modulation: Modulation) {
         this.scene = scene;
-        this.stimulus = stimulus;
+        this.modulation = modulation;
     }
 
     do() {
-        this.scene.add(this.stimulus);
+        this.scene.add(this.modulation);
     }
 
     undo() {
-        this.scene.remove(this.stimulus);
+        this.scene.remove(this.modulation);
     }
 
     destroy() {
-        this.stimulus.destroy();
+        this.modulation.destroy();
     }
 }
 
@@ -90,7 +90,7 @@ class AddTargetOp {
 }
 
 class GazeDirector {
-    stimulusRenderer: StimulusRenderer;
+    modulationRenderer: ModulationRenderer;
     targetRenderer: TargetRenderer;
     calibrationScreen: CalibrationScreen;
     gazeTracker: GazeTracker;
@@ -110,7 +110,7 @@ class GazeDirector {
     static averageMetrics: {ssim_mean: number, lpips_mean: number} = { ssim_mean: 0, lpips_mean: 0 };
 
     constructor(scene: Scene, events: Events, editHistory: EditHistory) {
-        this.stimulusRenderer = new StimulusRenderer(scene, events);
+        this.modulationRenderer = new ModulationRenderer(scene, events);
         this.targetRenderer = new TargetRenderer(scene, events);
         this.calibrationScreen = new CalibrationScreen(scene, events);
         this.gazeTracker = new GazeTracker(scene, events);
@@ -121,7 +121,7 @@ class GazeDirector {
         events.fire('camera.toggleOverlay');
 
         events.on(
-            'gaze.addStimulus',
+            'gaze.addModulation',
             (
                 position: Vec3,
                 radius: number,
@@ -131,7 +131,7 @@ class GazeDirector {
                 frequency: number,
                 hardness: number
             ) => {
-                const stimulus = new Stimulus(
+                const modulation = new Modulation(
                     position,
                     radius,
                     duration,
@@ -140,13 +140,13 @@ class GazeDirector {
                     frequency,
                     hardness
                 );
-                editHistory.add(new AddStimulusOp(scene, stimulus));
+                editHistory.add(new AddModulationOp(scene, modulation));
 
-                Stimulus.defaultVisualAngle = radius;
-                Stimulus.defaultFrequency = frequency;
-                Stimulus.defaultDuration = duration;
-                Stimulus.defaultHardness = hardness;
-                Stimulus.defaultIntensity = intensity;
+                Modulation.defaultVisualAngle = radius;
+                Modulation.defaultFrequency = frequency;
+                Modulation.defaultDuration = duration;
+                Modulation.defaultHardness = hardness;
+                Modulation.defaultIntensity = intensity;
             }
         );
 
@@ -221,8 +221,8 @@ class GazeDirector {
             (distance: number, screenWidthMetric: number) => this.setDeviceParams(distance, screenWidthMetric)
         );
 
-        events.function('gaze.allStimuli', () => {
-            return scene.getElementsByType(ElementType.gaze_stimulus);
+        events.function('gaze.allModulations', () => {
+            return scene.getElementsByType(ElementType.gaze_modulation);
         });
 
         events.function('gaze.allTargets', () => {
@@ -231,15 +231,15 @@ class GazeDirector {
 
         this.setDeviceParams();
 
-        // add debug stimulus for suppression region visualization
+        // add debug modulation for suppression region visualization
         // events.fire(
-        //     'gaze.addStimulus',
+        //     'gaze.addModulation',
         //     new Vec3(0, 0, 0),
         //     GazeDirector.suppressionVisualAngle,
-        //     STIMULUS_DURATION,
+        //     MODULATION_DURATION,
         //     0,
         //     STMULUS_INTENSITY,
-        //     STIMULUS_FREQUENCY,
+        //     MODULATION_FREQUENCY,
         //     1.0
         // );
     }
@@ -259,7 +259,7 @@ class GazeDirector {
             true
         );
 
-        Stimulus.suppressionRadius = visualAngleToRadius(
+        Modulation.suppressionRadius = visualAngleToRadius(
             GazeDirector.suppressionVisualAngle,
             distance,
             screenWidthMetric,
