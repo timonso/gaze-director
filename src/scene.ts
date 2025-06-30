@@ -18,6 +18,8 @@ import { Camera } from './camera';
 import { DataProcessor } from './data-processor';
 import { Element, ElementType, ElementTypeList } from './element';
 import { Events } from './events';
+import { Modulation } from './gaze/modulation';
+import { Target } from './gaze/target';
 import { InfiniteGrid as Grid } from './infinite-grid';
 import { Outline } from './outline';
 import { PCApp } from './pc-app';
@@ -261,10 +263,12 @@ class Scene {
         const modulations = this.getElementsByType(ElementType.gaze_modulation);
         modulations.forEach((modulation) => {
             this.remove(modulation);
+            (modulation as Modulation).destroy();
         });
         const targets = this.getElementsByType(ElementType.gaze_target);
         targets.forEach((target) => {
             this.remove(target);
+            (target as Target).destroy();
         });
     }
 
