@@ -155,7 +155,7 @@ class GazeDirector {
             (
                 position: Vec3 = new Vec3(0, 0, 0),
                 radius: number = 1.0,
-                duration: number = 10,
+                duration: number = 2.0,
                 startFrame: number = 0,
                 opacity: number = 1.0,
                 lightPosition: Vec3 = new Vec3(0, 0, 0),

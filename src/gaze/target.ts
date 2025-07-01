@@ -218,7 +218,7 @@ class Target extends Element {
     }
 
     destroy() {
-        this.editorEntity.destroy();
+        this.editorEntity.remove();
         this._timelineUpdateHandle?.off();
         this._enableHandle?.off();
         this._resizeHandle?.off();

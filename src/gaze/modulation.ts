@@ -223,7 +223,7 @@ class Modulation extends Element {
     }
 
     destroy() {
-        this.editorEntity.destroy();
+        this.editorEntity.remove();
         this._updateHandle?.off();
         this._enableHandle?.off();
         this._materialUpdateHandle?.off();

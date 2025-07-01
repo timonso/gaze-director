@@ -1,3 +1,5 @@
+import { Vec3 } from 'playcanvas';
+
 import { Events } from 'src/events';
 import { Scene } from 'src/scene';
 
@@ -5,14 +7,25 @@ import { SceneRecord } from './gaze-tracker';
 import { Modulation } from './modulation';
 import { Target } from './target';
 
+
 type GazeScene = {
     id: string;
     filepath: string;
     repetitions: number;
-    duration?: number; // [frames]
     showModulations: boolean;
-    modulationDiameter?: number; // [deg]
-    targetOpacity?: number; // [0-1]
+    durationOverride?: number; // [frames]
+    modulationOverride: {
+        diameter?: number; // [deg]
+        intensity?: number; // [0-1]
+        frequency?: number; // [Hz]
+        hardness?: number; // [0-1]
+    }
+    targetOverride?: {
+        opacity?: number; // [0-1]
+        radius?: number; // [scene units]
+        lightPosition?: [number, number, number]; // [scene units]
+        specularFactor?: number;
+    }
 }
 
 type SequenceData = {
@@ -67,7 +80,7 @@ class SceneSequencer {
                 const idx = this.currentSceneIndex;
                 const scenes = this.currentSequence.scenes;
 
-                if (time >= this.currentSceneDuration) {
+                if (time >= this.currentSceneDuration - 5) {
                     this.currentSceneRepetition++;
 
                     if (this.currentSceneRepetition >= scenes[idx].repetitions) {
@@ -112,7 +125,7 @@ class SceneSequencer {
             console.log(`Playing scene #${idx}`);
 
             events.fire('gaze.showModulationsPlayer', scenes[idx].showModulations);
-            this.currentSceneDuration = scenes[idx].duration ?? events.invoke('timeline.frames') - 5;
+            this.currentSceneDuration = scenes[idx].durationOverride ?? events.invoke('timeline.frames');
             console.log('Scene duration: ', this.currentSceneDuration);
         })
         .catch((error) => {
@@ -128,19 +141,28 @@ class SceneSequencer {
         console.log(`Loading scene from server: ${scenePath}`);
         await events.invoke('gaze.doc.openFromServer', scenePath);
 
-        // override modulation diameter if specified
-        if (scene.modulationDiameter) {
-            const allModulations: Modulation[] = await events.invoke('gaze.allModulations');
+        const allModulations: Modulation[] = await events.invoke('gaze.allModulations');
+        const allTargets: Target[] = await events.invoke('gaze.allTargets');
+
+        console.log(`# modulations: ${allModulations.length} | # targets: ${allTargets.length}`);
+
+        // override modulation parameters if specified
+        if (scene.modulationOverride) {
             for (const modulation of allModulations) {
-                modulation.diameter = scene.modulationDiameter;
+                modulation.diameter = scene.modulationOverride.diameter ?? modulation.diameter;
+                modulation.intensity = scene.modulationOverride.intensity ?? modulation.intensity;
+                modulation.frequency = scene.modulationOverride.frequency ?? modulation.frequency;
+                modulation.hardness = scene.modulationOverride.hardness ?? modulation.hardness;
             }
         }
 
-        // override target opacity if specified
-        if (scene.targetOpacity !== undefined) {
-            const allTargets: Target[] = await events.invoke('gaze.allTargets');
+        // override target properties if specified
+        if (scene.targetOverride) {
             for (const target of allTargets) {
-                target.opacity = scene.targetOpacity;
+                target.opacity = scene.targetOverride.opacity ?? target.opacity;
+                target.radius = scene.targetOverride.radius ?? target.radius;
+                target.lightPosition = scene.targetOverride.lightPosition ? new Vec3(scene.targetOverride.lightPosition) : target.lightPosition;
+                target.specularFactor = scene.targetOverride.specularFactor ?? target.specularFactor;
             }
         }
     }

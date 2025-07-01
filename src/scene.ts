@@ -260,15 +260,17 @@ class Scene {
             this.remove(splat);
             (splat as Splat).destroy();
         });
-        const modulations = this.getElementsByType(ElementType.gaze_modulation);
+        const modulations: Modulation[] = this.getElementsByType(ElementType.gaze_modulation) as Modulation[];
         modulations.forEach((modulation) => {
             this.remove(modulation);
-            (modulation as Modulation).destroy();
+            modulation.editorEntity.destroy();
+            modulation.destroy();
         });
-        const targets = this.getElementsByType(ElementType.gaze_target);
+        const targets: Target[] = this.getElementsByType(ElementType.gaze_target) as Target[];
         targets.forEach((target) => {
             this.remove(target);
-            (target as Target).destroy();
+            target.editorEntity.destroy();
+            target.destroy();
         });
     }
 
