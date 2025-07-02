@@ -26,6 +26,8 @@ const fragmentShader = /* glsl */ `
     vec3 diffuseColor = vec3(0.6, 0.6, 0.6);
     vec3 specularColor = vec3(1.0, 1.0, 1.0);
     float samplingLevel = 0.0;
+    float fresnelIntensity = 0.1;
+    float fresnelPower = 2.0;
 
     uniform sampler2D backgroundBuffer;
     uniform vec3 cameraPosition;
@@ -53,20 +55,23 @@ const fragmentShader = /* glsl */ `
             vec3 lightDirection = normalize(lightPositions[i] - worldPosition);
             vec3 reflectDirection = reflect(-lightDirection, normal);
 
-            float Kd = max(dot(normal, lightDirection), 0.0);
-            float Ks = pow(max(dot(viewDirection, reflectDirection), 0.0), specularFactor);
+            float diffuseIntensity = max(dot(normal, lightDirection), 0.0);
+            float specularIntensity = pow(max(dot(viewDirection, reflectDirection), 0.0), specularFactor);
 
-            diffuse += Kd * diffuseColor * lightColors[i];
-            specular += Ks * specularColor * lightColors[i];
+            diffuse += diffuseIntensity * diffuseColor * lightColors[i];
+            specular += specularIntensity * specularColor * lightColors[i];
         }
 
         vec3 ambient = 0.1 * color.rgb;
-        vec3 phongColor = diffuse + specular + ambient;
-
+        vec3 phongColor = 0.6 * diffuse + 0.9 * specular + ambient;
+        
         vec2 texCoord = gl_FragCoord.xy / vec2(textureSize(backgroundBuffer, 0) * resolutionFactor);
         vec4 backgroundColor = textureLod(backgroundBuffer, texCoord, samplingLevel);
-
         vec3 compositeColor = mix(backgroundColor.rgb, phongColor.rgb, opacity);
+
+        float fresnel = pow(1.0 - max(dot(normal, viewDirection), 0.0), fresnelPower);
+        fresnel = fresnel * fresnelIntensity;
+        compositeColor = mix(compositeColor, color.rgb, fresnel);
 
         gl_FragColor = vec4(compositeColor, backgroundColor.a);
     }

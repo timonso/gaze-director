@@ -231,6 +231,9 @@ class GazeDirector {
 
         this.setDeviceParams();
 
+        // disable target timings on startup
+        events.fire('gaze.ignoreTargetTimings', true);
+
         // add debug modulation for suppression region visualization
         // events.fire(
         //     'gaze.addModulation',
@@ -243,6 +246,7 @@ class GazeDirector {
         //     1.0
         // );
     }
+
 
     setDeviceParams(
         distance: number = VIEWING_DISTANCE,

@@ -64,10 +64,10 @@ class CalibrationScreen {
         overlay.style.backgroundColor = 'rgba(30, 30, 30, 1.0)';
         document.body.appendChild(overlay);
 
-        overlay.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            events.fire('gaze.toggleCalibrationScreen');
-        });
+        // overlay.addEventListener('contextmenu', (e) => {
+        //     e.preventDefault();
+        //     events.fire('gaze.toggleCalibrationScreen');
+        // });
 
         const cross = (this._cross = document.createElement('img'));
         cross.src = crossVector;

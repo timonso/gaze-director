@@ -280,6 +280,9 @@ class Menu extends Container {
             text: 'Add Target',
             onSelect: async () => await events.fire('tool.gaze.targetSelection')
         }, {
+            text: 'Toggle Target Timings',
+            onSelect: async () => await events.fire('gaze.toggleTargetTimings')
+        }, {
             // separator
         }, {
             text: 'Toggle Blackout Screen',

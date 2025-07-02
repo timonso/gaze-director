@@ -1,0 +1,258 @@
+{
+    "persistentTargets": true,
+    "scenes": [
+        {
+            "id": "sc00",
+            "filepath": "scenes/flowers.ssproj",
+            "targetCount": 8,
+            "repetitions": 1,
+            "showModulations": false,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [0, 100, 100],
+                "specularFactor": 10
+            }
+        },
+        {
+            "id": "sc01",
+            "filepath": "scenes/tree_low.ssproj",
+            "repetitions": 1,
+            "targetCount": 6,
+            "showModulations": true,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["H570", "U"]
+        },
+        {
+            "id": "sc04",
+            "filepath": "scenes/alley_high.ssproj",
+            "repetitions": 1,
+            "targetCount": 8,
+            "showModulations": false,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["T81", "T243"]
+        },
+        {
+            "id": "sc07",
+            "filepath": "scenes/cacti_low.ssproj",
+            "repetitions": 1,
+            "targetCount": 5,
+            "showModulations": true,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["H203", "U"]
+        },
+        {
+            "id": "sc09",
+            "filepath": "scenes/stairs_low.ssproj",
+            "repetitions": 1,
+            "targetCount": 7,
+            "showModulations": false,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["H679", "U"]
+        },
+        {
+            "id": "sc12",
+            "filepath": "scenes/tendrils_high.ssproj",
+            "repetitions": 1,
+            "targetCount": 8,
+            "showModulations": false,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["T104", "T277"]
+        },
+        {
+            "id": "sc11",
+            "filepath": "scenes/geese_low.ssproj",
+            "repetitions": 1,
+            "targetCount": 9,
+            "showModulations": true,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["H171", "U"]
+        },
+        {
+            "id": "sc06",
+            "filepath": "scenes/house_high.ssproj",
+            "repetitions": 1,
+            "targetCount": 5,
+            "showModulations": true,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["T497", "T530"]
+        },
+        {
+            "id": "sc10",
+            "filepath": "scenes/stairs_high.ssproj",
+            "repetitions": 1,
+            "targetCount": 6,
+            "showModulations": false,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, 100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["T152", "T144"]
+        },
+        {
+            "id": "sc05",
+            "filepath": "scenes/house_low.ssproj",
+            "repetitions": 1,
+            "targetCount": 8,
+            "showModulations": true,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["H187", "U"]
+        },
+        {
+            "id": "sc08",
+            "filepath": "scenes/cacti_high.ssproj",
+            "repetitions": 1,
+            "targetCount": 7,
+            "showModulations": false,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["T295", "T160"]
+        },
+        {
+            "id": "sc13",
+            "filepath": "scenes/gravel_low.ssproj",
+            "repetitions": 1,
+            "targetCount": 6,
+            "showModulations": false,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["H659", "U"]
+        },
+        {
+            "id": "sc14",
+            "filepath": "scenes/rocks_high.ssproj",
+            "repetitions": 1,
+            "targetCount": 9,
+            "showModulations": true,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [100, 100, 100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["T151", "T176"]
+        },
+        {
+            "id": "sc02",
+            "filepath": "scenes/tree_high.ssproj",
+            "repetitions": 1,
+            "targetCount": 7,
+            "showModulations": true,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["T591", "T836"]
+        },
+        {
+            "id": "sc03",
+            "filepath": "scenes/alley_low.ssproj",
+            "repetitions": 1,
+            "targetCount": 5,
+            "showModulations": false,
+            "durationOverride": 600,
+            "modulationOverride": {
+                "diameter": 0.51
+            },
+            "targetOverride": {
+                "opacity": 0.3,
+                "lightPosition": [-100, 100, -100],
+                "specularFactor": 10
+            },
+            "referenceViews": ["H377", "U"]
+        }
+    ]
+}

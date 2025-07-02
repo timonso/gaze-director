@@ -30,6 +30,7 @@ type GazeScene = {
 
 type SequenceData = {
     persistentTargets: boolean;
+    tonemapping?: string;
     scenes: GazeScene[];
 }
 
@@ -127,6 +128,8 @@ class SceneSequencer {
             events.fire('gaze.showModulationsPlayer', scenes[idx].showModulations);
             this.currentSceneDuration = scenes[idx].durationOverride ?? events.invoke('timeline.frames');
             console.log('Scene duration: ', this.currentSceneDuration);
+
+            events.fire('camera.setTonemapping', this.currentSequence.tonemapping ?? 'aces2');
         })
         .catch((error) => {
             console.error(`Error loading scene #${idx}:`, error);

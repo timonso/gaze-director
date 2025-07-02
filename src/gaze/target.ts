@@ -61,7 +61,7 @@ class Target extends Element {
     _resizeHandle: EventHandle;
     _updateHandle: EventHandle;
 
-    static persistent: boolean;
+    static persistent: boolean = true;
 
     set radius(radius: number) {
         this._radius = radius;
@@ -181,6 +181,10 @@ class Target extends Element {
 
         events.on('gaze.ignoreTargetTimings', (value: boolean) => {
             Target.persistent = value;
+        });
+
+        events.on('gaze.toggleTargetTimings', () => {
+            Target.persistent = !Target.persistent;
         });
 
         this._resizeHandle = events.on('camera.resize', () => {

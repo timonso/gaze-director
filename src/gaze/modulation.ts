@@ -67,7 +67,7 @@ class Modulation extends Element {
     _materialUpdateHandle: EventHandle;
     _gazeTrackingData: GazeRecord[] = [];
     _trackingHandle: EventHandle;
-    _suppressionLag: number = 0; // [frames]
+    _suppressionLag: number = SUPPRESSION_LAG; // [frames]
 
     static suppressionRadius: number = SUPPRESSION_RADIUS; // [px]
     static suppressionAngle: number = SUPPRESSION_ANGLE; // [degrees]

@@ -1,1 +1,1 @@
-To host the scene files, run 'http-server -c-1 --cors' in this directory.
+To host the scene files, run 'http-server --cors' in this directory.

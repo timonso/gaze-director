@@ -55,7 +55,7 @@ class GazeTracker {
             this.saveGazeRecording(sceneData);
         });
 
-        events.on('gaze.clearTrackingData', (sceneData?: SceneRecord) => {
+        events.on('gaze.clearTrackingData', () => {
             this.currentRecordedData.length = 0;
         });
 
