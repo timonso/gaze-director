@@ -8,10 +8,10 @@
             "repetitions": 1,
             "showModulations": true,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [0, 100, 100],
                 "specularFactor": 10
             }
@@ -24,10 +24,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -41,10 +41,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [100, 100, -100],
                 "specularFactor": 10
             },
@@ -58,10 +58,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -75,10 +75,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -92,10 +92,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [100, 100, -100],
                 "specularFactor": 10
             },
@@ -109,10 +109,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -126,10 +126,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -143,10 +143,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -160,10 +160,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -177,10 +177,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, 100],
                 "specularFactor": 10
             },
@@ -194,10 +194,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -211,10 +211,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [100, 100, -100],
                 "specularFactor": 10
             },
@@ -228,10 +228,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [-100, 100, -100],
                 "specularFactor": 10
             },
@@ -245,10 +245,10 @@
             "showModulations": true,
             "durationOverride": 600,
             "modulationOverride": {
-                "diameter": 0.51
+                "diameter": 0.76
             },
             "targetOverride": {
-                "opacity": 0.3,
+                "opacity": 0.30,
                 "lightPosition": [100, 100, 100],
                 "specularFactor": 10
             },

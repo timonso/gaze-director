@@ -16,10 +16,11 @@ import { CalibrationScreen } from './ui/calibration-screen';
 
 // values from Bailey et al. 2009 & Rayner 1975
 export const FOVEAL_VISUAL_ANGLE = 3.8; // [degrees]
-export const MODULATION_VISUAL_ANGLE = 0.25; // [degrees]
+export const MODULATION_VISUAL_ANGLE = 0.67; // [degrees]
 export const STMULUS_INTENSITY = 0.095; // [0-1]
+
 export const MODULATION_FREQUENCY = 10.0; // [Hz]
-export const MODULATION_DURATION = 10.0; // [seconds]
+export const MODULATION_DURATION = 2.0; // [seconds]
 
 // value from WebgazerJS
 export const TRACKING_ERROR = 4.17; // [degrees]
@@ -100,7 +101,7 @@ class GazeDirector {
     static screenWidthMetric: number = SCREEN_WIDTH_METRIC; // [cm]
     static viewingDistance: number = VIEWING_DISTANCE; // [cm]
     static suppressionVisualAngle: number =
-        FOVEAL_VISUAL_ANGLE + 0.5 * TRACKING_ERROR; // [degrees]
+        FOVEAL_VISUAL_ANGLE + TRACKING_ERROR; // [degrees]
     static trackingError: number = 0; // [px]
 
     static cameraPoses: CameraPose[] = [];
