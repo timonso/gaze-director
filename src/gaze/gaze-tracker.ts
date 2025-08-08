@@ -24,7 +24,6 @@ type SceneRecord = {
     modulated: boolean;
 }
 
-// TODO: change back to threaded
 const REGRESSION_TYPE = 'threadedRidge';
 // const REGRESSION_TYPE = 'ridge';
 const SAMPLING_RATE = 20; // [Hz]
@@ -32,7 +31,9 @@ const SAMPLING_RATE = 20; // [Hz]
 class GazeTracker {
     gazeTracker: typeof webgazer;
     currentRecordedData: GazeRecord[] = [];
+    loadedData: GazeRecord[] = [];
     _recording: boolean = false;
+    _dataLoaded: boolean = false;
 
     constructor(scene: Scene, events: Events) {
         events.on('gaze.startTracking', (showPoints = true, regressionType = REGRESSION_TYPE) => {
@@ -55,6 +56,10 @@ class GazeTracker {
             this.saveGazeRecording(sceneData);
         });
 
+        events.on('gaze.loadTrackingData', () => {
+            this.loadGazeRecording();
+        });
+
         events.on('gaze.clearTrackingData', () => {
             this.currentRecordedData.length = 0;
         });
@@ -68,7 +73,6 @@ class GazeTracker {
             return position;
         });
 
-        // TODO: call at the end of scene sequence
         events.on('gaze.resetCalibration', () => {
             this.resetCalibration();
         });
@@ -86,6 +90,12 @@ class GazeTracker {
                 if (prediction) {
                     this.currentRecordedData.push({ x: prediction.x, y: prediction.y, timestamp: time });
                 }
+            }
+        });
+
+        events.on('timeline.frame', (frame: number) => {
+            if (this._dataLoaded) {
+                this.visualizeLoadedData(frame);
             }
         });
 
@@ -107,7 +117,6 @@ class GazeTracker {
         await this.gazeTracker.begin();
         this._recording = true;
         console.log('Gaze tracker ready.');
-        // TODO: check for this in the scene sequencer later
         events.fire('gaze.trackerReady');
 
         setTimeout(() => {
@@ -147,6 +156,73 @@ class GazeTracker {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    loadGazeRecording() {
+        this.loadedData.length = 0;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+        input.onchange = (event: Event) => {
+            const target = event.target as HTMLInputElement;
+            if (target.files && target.files.length > 0) {
+                const file = target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target?.result as string;
+                    const lines = text.split('\n').filter(line => line.trim().length > 0);
+                    const dataLines = lines[0].startsWith('x,') ? lines.slice(1) : lines;
+                    dataLines.forEach((l) => {
+                        const [x, y, timestamp] = l.split(',').map(Number);
+                        this.loadedData.push({ x, y, timestamp });
+                    });
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
+        this._dataLoaded = true;
+        this.addGazeMarker();
+        console.log('Gaze recording loaded: ', this.loadedData);
+    }
+
+    addGazeMarker() {
+        const gazeMarker = document.createElement('div');
+        gazeMarker.id = 'gazeMarker';
+        gazeMarker.style.display = 'block';
+        gazeMarker.style.position = 'fixed';
+        gazeMarker.style.left = '-5px';
+        gazeMarker.style.top = '-5px';
+        gazeMarker.style.width = '16px';
+        gazeMarker.style.height = '16px';
+        gazeMarker.style.borderRadius = '50%';
+        gazeMarker.style.opacity = '0.7';
+        gazeMarker.style.background = 'yellow';
+        gazeMarker.style.pointerEvents = 'none';
+        gazeMarker.style.zIndex = '9999';
+        document.body.appendChild(gazeMarker);
+
+        const childCircle = document.createElement('div');
+        childCircle.style.position = 'absolute';
+        childCircle.style.left = '-251px';
+        childCircle.style.top = '-251px';
+        childCircle.style.width = '502px';
+        childCircle.style.height = '502px';
+        childCircle.style.borderRadius = '50%';
+        childCircle.style.opacity = '0.4';
+        childCircle.style.background = 'yellow';
+        childCircle.style.pointerEvents = 'none';
+        gazeMarker.appendChild(childCircle);
+    }
+
+    visualizeLoadedData(currentFrameTime: number) {
+        const gazeMarker = document.getElementById('gazeMarker');
+        if (!gazeMarker) return;
+
+        const currentData = this.loadedData.find(d => Math.floor(d.timestamp) === Math.floor(currentFrameTime));
+        if (currentData) {
+            gazeMarker.style.transform = `translate3d(${currentData.x}px, ${currentData.y}px, 0)`;
+        }
     }
 
     stopGazeTracking(saveTrackingData = false) {

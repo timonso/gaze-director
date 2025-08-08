@@ -269,6 +269,9 @@ class Menu extends Container {
             text: 'Save Tracking Data',
             onSelect: async () => await events.fire('gaze.saveTrackingData')
         }, {
+            text: 'Load Tracking Data',
+            onSelect: async () => await events.fire('gaze.loadTrackingData')
+        }, {
             text: 'Clear Tracking Data',
             onSelect: async () => await events.fire('gaze.clearTrackingData')
         }, {
