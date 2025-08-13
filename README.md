@@ -3,6 +3,8 @@
 A live version of GazeSplat is available [here](https://gazesplat.netlify.app/).
 
 Most of the gaze-specific code contributions are located in `/src/gaze`.
+
+Eye tracking system adopted from [WebGazer](https://github.com/brownhci/WebGazer).
 # Based on SuperSplat:
 
 ## SuperSplat - 3D Gaussian Splat Editor
